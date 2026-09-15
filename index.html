@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <title>MTS சுவடி</title>
+
+  <link
+    rel="manifest"
+    href="manifest.json"
+  >
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+
+  <!-- Google Identity Services -->
+<script
+  src="https://accounts.google.com/gsi/client"
+  async
+  defer
+></script>
+
+</head>
+
+
+<body>
+
+
+  <!-- =====================================================
+       LOGIN SCREEN
+       ===================================================== -->
+
+  <div
+    id="suvadi-login-panel"
+    hidden
+  >
+
+    <header class="topbar">
+
+      <img
+        class="app-logo"
+        src="icons/mts-logo.png"
+        alt="MTS"
+      >
+
+      <div class="page-title">
+        MTS சுவடி
+      </div>
+
+    </header>
+
+
+    <main>
+
+      <div
+        style="
+          max-width:420px;
+          margin:60px auto;
+          padding:30px 20px;
+          text-align:center;
+        "
+      >
+
+        <img
+          src="icons/mts-logo.png"
+          alt="MTS"
+          style="
+            width:90px;
+            height:auto;
+            margin-bottom:20px;
+          "
+        >
+
+
+        <h2
+          style="
+            margin-bottom:10px;
+          "
+        >
+          MTS சுவடி
+        </h2>
+
+
+        <div
+          style="
+            margin-bottom:25px;
+            line-height:1.6;
+          "
+        >
+          உங்கள் குழந்தையின் பள்ளி
+          Google கணக்கைப் பயன்படுத்தி
+          உள்நுழையவும்.
+        </div>
+
+
+        <div
+          style="
+            margin-bottom:25px;
+            font-size:14px;
+          "
+        >
+          Sign in with your child's
+          school Email ID
+        </div>
+
+
+        <div
+          id="google-signin-button"
+          style="
+            display:flex;
+            justify-content:center;
+          "
+        ></div>
+
+
+        <div
+          id="google-signin-status"
+          style="
+            margin-top:18px;
+            font-weight:600;
+          "
+        ></div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       SUVADI APPLICATION
+       ===================================================== -->
+
+  <div
+    id="suvadi-app-panel"
+    hidden
+  >
+
+
+    <header class="topbar">
+
+<button
+  class="icon-button"
+  type="button"
+  aria-label="Menu"
+  onclick="toggleSuvadiMenu()"
+>
+  ☰
+</button>
+
+
+      <img
+        class="app-logo"
+        src="icons/mts-logo.png"
+        alt="MTS"
+      >
+
+
+      <div class="page-title">
+        MTS சுவடி
+      </div>
+
+
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Search"
+      >
+        ⌕
+      </button>
+
+
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Refresh"
+        onclick="refreshPage()"
+      >
+        ↻
+      </button>
+
+    <div
+  id="suvadi-menu"
+  hidden
+  style="
+    position:absolute;
+    top:60px;
+    left:10px;
+    background:white;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:8px;
+    z-index:1000;
+    box-shadow:0 3px 12px rgba(0,0,0,0.18);
+  "
+>
+
+  <button
+    type="button"
+    onclick="signOutSuvadi()"
+    style="
+      border:none;
+      background:white;
+      padding:12px 20px;
+      font-size:16px;
+      cursor:pointer;
+    "
+  >
+    Sign Out
+  </button>
+
+</div>    
+    
+    </header>
+
+
+
+    <main>
+
+      <div
+        class="welcome"
+        id="welcome"
+      >
+        Welcome
+      </div>
+
+
+      <div
+        id="student-list"
+      ></div>
+
+
+      <div
+        class="home-spacer"
+      ></div>
+
+    </main>
+
+
+
+    <nav class="bottom-nav">
+
+      <a
+        class="nav-item active"
+        href="./index.html"
+      >
+
+        <span class="nav-icon">
+          ⌂
+        </span>
+
+        <span class="nav-label">
+          MTS சுவடி
+        </span>
+
+      </a>
+
+
+      <a
+        class="nav-item"
+        data-my-books-link
+        href="./books.html"
+      >
+
+        <span class="nav-icon">
+          📚
+        </span>
+
+        <span class="nav-label">
+          My Books
+        </span>
+
+      </a>
+
+    </nav>
+
+
+  </div>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+       ===================================================== -->
+
+  <script src="data.js"></script>
+
+  <script src="app.js"></script>
+
+
+<script>
+
+  window.addEventListener(
+    "load",
+    async function () {
+
+      /*
+       * First determine whether to show
+       * Login or the existing Suvadi session.
+       */
+      await initializeSuvadiHome();
+
+
+      /*
+       * If login is required, wait until
+       * Google Identity Services is ready
+       * before rendering the button.
+       */
+      let attempts = 0;
+
+      const waitForGoogle =
+        setInterval(function () {
+
+          attempts++;
+
+
+          if (
+            typeof google !== "undefined" &&
+            google.accounts &&
+            google.accounts.id
+          ) {
+
+            clearInterval(
+              waitForGoogle
+            );
+
+            initializeGoogleSignIn();
+
+          }
+
+
+          /*
+           * Stop trying after approximately
+           * 10 seconds.
+           */
+          if (attempts >= 50) {
+
+            clearInterval(
+              waitForGoogle
+            );
+
+            const status =
+              document.getElementById(
+                "google-signin-status"
+              );
+
+            if (status) {
+
+              status.textContent =
+                "Unable to load Google Sign-In. Please refresh the page.";
+
+            }
+
+          }
+
+        }, 200);
+
+    }
+  );
+
+</script>
+
+
+</body>
+
+</html>
