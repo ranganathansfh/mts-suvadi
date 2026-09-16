@@ -4,7 +4,7 @@
  */
 const ALLOWED_LOGIN_DOMAIN = "mitamilsangam.org";
 let suvadiDataCache = null;
-let firebaseAuthReadyPromise = null;
+ 
 
 function normalizeText(value) { return String(value ?? "").trim(); }
 function normalizeEmail(value) { return normalizeText(value).toLowerCase(); }
@@ -34,12 +34,12 @@ function displayDateValue(value) {
   return normalizeText(value);
 }
 function waitForFirebaseAuth() {
-  if (!firebaseAuthReadyPromise) {
-    firebaseAuthReadyPromise = new Promise(resolve => {
-      const unsubscribe = suvadiAuth.onAuthStateChanged(user => { unsubscribe(); resolve(user); });
+  return new Promise(resolve => {
+    const unsubscribe = suvadiAuth.onAuthStateChanged(user => {
+      unsubscribe();
+      resolve(user);
     });
-  }
-  return firebaseAuthReadyPromise;
+  });
 }
 function isAllowedLoginEmail(email) {
   return normalizeEmail(email).endsWith("@" + ALLOWED_LOGIN_DOMAIN);
