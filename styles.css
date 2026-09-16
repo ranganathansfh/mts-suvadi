@@ -461,3 +461,275 @@ button, a { font: inherit; }
 .book-status-header[aria-expanded="false"] .group-chevron {
   transform: rotate(45deg);
 }
+
+/* My Books - student status colors */
+
+.mybooks-student-name.student-books-red {
+  color: var(--red);
+}
+
+.mybooks-student-name.student-books-orange {
+  color: var(--orange);
+}
+
+.mybooks-student-name.student-books-green {
+  color: var(--green);
+}
+
+/* Checked Out Date groups */
+
+.checkout-date-group {
+  background: #fff;
+}
+
+.checkout-date-header {
+  min-height: 32px;
+  padding: 6px 12px 6px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #f3f4f6;
+  border-bottom: 1px solid var(--border);
+
+  color: #555;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkout-date-count {
+  min-width: 22px;
+  height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 6px;
+
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+
+  color: #666;
+  font-size: 12px;
+}
+.student-books-red {
+  color: var(--red) !important;
+}
+
+.student-books-orange {
+  color: var(--orange) !important;
+}
+
+.student-books-green {
+  color: var(--green) !important;
+}
+
+ .student-name-red {
+  color: var(--red) !important;
+  font-weight: 700;
+}
+
+.student-name-orange {
+  color: var(--orange) !important;
+  font-weight: 700;
+}
+
+.student-name-green {
+  color: var(--green) !important;
+  font-weight: 700;
+}
+
+/*
+ * ============================================================
+ * LOGIN SCREEN LOGO
+ * ============================================================
+ */
+
+.login-logo {
+  width: 90px !important;
+  height: 90px !important;
+
+  object-fit: contain;
+
+  display: block;
+
+  margin: 0 auto 12px auto;
+}
+
+
+/*
+ * Mobile
+ */
+
+@media (max-width: 600px) {
+
+  .login-logo {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+}
+/*
+ * ============================================================
+ * MTS SUVADI FULL-SCREEN STARTUP / LOGIN SCREEN
+ * ============================================================
+ */
+
+.suvadi-startup-screen {
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+
+  overflow: hidden;
+
+  background: #0879dc;
+
+  z-index: 1000;
+}
+
+
+/*
+ * Full-screen artwork
+ */
+
+.suvadi-startup-image {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center center;
+
+  display: block;
+}
+
+
+/*
+ * ============================================================
+ * LOGIN CONTROLS
+ * ============================================================
+ */
+
+.suvadi-login-controls {
+  position: absolute;
+
+  left: 50%;
+  bottom: max(32px, env(safe-area-inset-bottom));
+
+  transform: translateX(-50%);
+
+  width: min(88%, 360px);
+
+  z-index: 2;
+
+  text-align: center;
+}
+
+
+/*
+ * Very important:
+ * hidden must override the positioning rule above.
+ */
+
+.suvadi-login-controls[hidden] {
+  display: none !important;
+}
+
+
+/*
+ * Google Sign In
+ */
+
+.suvadi-google-signin {
+  width: 100%;
+
+  min-height: 48px;
+
+  padding: 11px 20px;
+
+  border: 2px solid #ffffff;
+  border-radius: 24px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  color: #1254a3;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+
+.suvadi-google-signin:active {
+  transform: scale(0.98);
+}
+
+
+.suvadi-google-signin:disabled {
+  opacity: 0.75;
+
+  cursor: default;
+}
+
+
+/*
+ * Login status
+ */
+
+.suvadi-login-status {
+  min-height: 18px;
+
+  margin-top: 9px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-align: center;
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+
+/*
+ * ============================================================
+ * MOBILE
+ * ============================================================
+ */
+
+@media (max-width: 600px) {
+
+  .suvadi-login-controls {
+    width: 82%;
+
+    bottom:
+      max(
+        24px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+
+  .suvadi-google-signin {
+    min-height: 46px;
+
+    font-size: 15px;
+  }
+
+}

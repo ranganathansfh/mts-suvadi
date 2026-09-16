@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,
+             initial-scale=1.0,
+             viewport-fit=cover"
+  >
+
+  <title>
+    Admin - MTS சுவடி
+  </title>
+
+
+  <link
+    rel="manifest"
+    href="manifest.json"
+  >
+
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
+
+
+  <!-- Existing Suvadi styles -->
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+
+
+  <!-- Admin-only styles -->
+  <link
+    rel="stylesheet"
+    href="admin.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!--
+   * ==========================================================
+   * TOP BAR
+   * ==========================================================
+   -->
+
+  <header class="topbar">
+
+
+    <!-- Menu -->
+
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Menu"
+      onclick="toggleSuvadiMenu()"
+    >
+      ☰
+    </button>
+
+
+    <!-- MTS Logo -->
+
+    <img
+      class="app-logo"
+      src="icons/mts-logo.png"
+      alt="MTS"
+    >
+
+
+    <!-- Page title -->
+
+    <div class="page-title">
+      Admin
+    </div>
+
+
+    <div class="top-spacer"></div>
+
+
+    <!-- Refresh -->
+
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Refresh"
+      onclick="refreshPage()"
+    >
+      ↻
+    </button>
+
+
+  </header>
+
+
+
+  <!--
+   * ==========================================================
+   * MENU
+   * ==========================================================
+   -->
+
+  <div
+    id="suvadi-menu"
+    hidden
+    style="
+      position: fixed;
+      z-index: 20;
+      top: 58px;
+      left: 10px;
+      background: white;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0 3px 18px #0003;
+    "
+  >
+
+    <button
+      class="admin-signout"
+      type="button"
+      onclick="adminSignOut()"
+    >
+      Sign out
+    </button>
+
+  </div>
+
+
+
+  <!--
+   * ==========================================================
+   * MAIN CONTENT
+   * ==========================================================
+   -->
+
+  <main class="admin-main">
+
+
+    <!--
+     * Admin School
+     *
+     * Example:
+     *
+     * SCC Admin
+     -->
+
+    <div
+      class="admin-subtitle"
+      id="admin-school"
+    >
+      Admin
+    </div>
+
+
+
+    <!--
+     * Class list is generated
+     * dynamically by admin.js.
+     -->
+
+    <div
+      class="admin-list"
+      id="admin-class-list"
+    >
+      Loading...
+    </div>
+
+
+  </main>
+
+
+
+  <!--
+   * ==========================================================
+   * BOTTOM NAVIGATION
+   * ==========================================================
+   -->
+
+  <nav class="bottom-nav">
+
+
+    <a
+      class="nav-item"
+      href="./index.html"
+    >
+
+      <span class="nav-icon">
+        ⌂
+      </span>
+
+      <span class="nav-label">
+        MTS சுவடி
+      </span>
+
+    </a>
+
+
+
+    <a
+      class="nav-item active"
+      href="./admin.html"
+    >
+
+      <span class="nav-icon">
+        ⚙
+      </span>
+
+      <span class="nav-label">
+        Admin
+      </span>
+
+    </a>
+
+
+  </nav>
+
+
+
+  <!--
+   * ==========================================================
+   * FIREBASE
+   * ==========================================================
+   -->
+
+
+  <script
+    src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"
+  ></script>
+
+
+  <script
+    src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"
+  ></script>
+
+
+  <script
+    src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"
+  ></script>
+
+
+
+  <!--
+   * ==========================================================
+   * SUVADI JAVASCRIPT
+   * ==========================================================
+   -->
+
+
+  <script src="firebase-config.js"></script>
+
+  <script src="data.js"></script>
+
+  <script src="app.js"></script>
+
+  <script src="admin.js"></script>
+
+
+
+  <!--
+   * ==========================================================
+   * START ADMIN PAGE
+   * ==========================================================
+   -->
+
+
+  <script>
+
+    window.addEventListener(
+      "load",
+      loadAdminHome
+    );
+
+  </script>
+
+
+</body>
+
+</html>

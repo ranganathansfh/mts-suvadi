@@ -53,6 +53,43 @@ function formatDate(dateText) {
   }).format(date);
 }
 
+function groupBy(items, keyFn) {
+  return items.reduce((groups, item) => {
+    const key = keyFn(item);
+
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+
+    groups[key].push(item);
+    return groups;
+  }, {});
+}
+
+async function getStudentBookStatusClass(studentId) {
+  const lending = await getLendingForStudent(studentId);
+
+  const hasOverdue = lending.some(book =>
+    !book.returned &&
+    calculateBookStatus(book) === "overdue"
+  );
+
+  if (hasOverdue) {
+    return "student-books-red";
+  }
+
+  const hasUpcoming = lending.some(book =>
+    !book.returned &&
+    calculateBookStatus(book) !== "overdue"
+  );
+
+  if (hasUpcoming) {
+    return "student-books-orange";
+  }
+
+  return "student-books-green";
+}
+
 function setMyBooksLinks() {
   document.querySelectorAll("[data-my-books-link]").forEach(link => {
     link.href = "./books.html";
@@ -71,32 +108,57 @@ function renderSummary(summary) {
 async function loadHome() {
   const welcome = document.getElementById("welcome");
   const studentList = document.getElementById("student-list");
+
   const currentUser = await getCurrentUser();
   const students = await getStudentsForCurrentUser();
 
-  welcome.innerHTML = `Welcome, ${currentUser.displayName.replace(" & ", " &<br>")}`;
+  welcome.innerHTML =
+    `Welcome, ${currentUser.displayName.replace(" & ", " &<br>")}`;
+
   setMyBooksLinks();
 
   const rows = [];
+
   for (const student of students) {
+
     const summary = await getStudentSummary(student.studentId);
+
+    // Determine student status based on books.
+    let status = "green";
+
+    if (summary.overdue > 0) {
+      status = "red";
+    }
+    else if (summary.pending > 0) {
+      status = "orange";
+    }
+
     rows.push(`
       <button class="student-card"
               type="button"
               onclick="openStudentDetails('${student.studentId}')">
+
         <div class="student-row">
-          <span class="status-dot ${student.status}"></span>
-          <span>${studentDisplayName(student)}</span>
+
+          <span class="status-dot ${status}"></span>
+
+          <span class="student-name-${status}">
+            ${studentDisplayName(student)}
+          </span>
+
         </div>
+
         <div class="stats">
           <span>📚 ${summary.totalBooks}</span>
           <span class="returned-dot">●</span> ${summary.returned}
           <span class="pending-dot">●</span> ${summary.pending}
           <span class="overdue-dot">●</span> ${summary.overdue}
         </div>
+
       </button>
     `);
   }
+
   studentList.innerHTML = rows.join("");
 }
 
@@ -105,19 +167,22 @@ function openStudentDetails(studentId) {
   window.location.href = `./details.html?student=${encodeURIComponent(studentId)}`;
 }
 
-async function loadDetails() {
+ async function loadDetails() {
   const params = new URLSearchParams(window.location.search);
   const studentId = params.get("student") || getSelectedStudent();
   const content = document.getElementById("details-content");
 
   if (!studentId) {
-    content.innerHTML = `<div class="error-box">Student ID was not supplied.</div>`;
+    content.innerHTML =
+      `<div class="error-box">Student ID was not supplied.</div>`;
     return;
   }
 
   const student = await getStudentById(studentId);
+
   if (!student) {
-    content.innerHTML = `<div class="error-box">Student ${studentId} was not found.</div>`;
+    content.innerHTML =
+      `<div class="error-box">Student ${studentId} was not found.</div>`;
     return;
   }
 
@@ -125,39 +190,60 @@ async function loadDetails() {
   setMyBooksLinks();
 
   const summary = await getStudentSummary(studentId);
+
+  // Determine student color from book status.
+  let studentStatus = "green";
+
+  if (summary.overdue > 0) {
+    studentStatus = "red";
+  } else if (summary.pending > 0) {
+    studentStatus = "orange";
+  }
+
   const teacherText = student.teachers.join("<br>");
   const parentText = student.parents.join("<br>&amp; ");
 
   content.innerHTML = `
     <div class="field">
       <div class="field-label">Student</div>
+
       <div class="field-value value-with-dot">
-        <span class="status-dot ${student.status}"></span>
-        <span>${studentDisplayName(student)}</span>
+
+        <span class="status-dot ${studentStatus}"></span>
+
+        <span class="student-name-${studentStatus}">
+          ${studentDisplayName(student)}
+        </span>
+
       </div>
     </div>
 
     <div class="field">
       <div class="field-label">Grade</div>
-      <div class="field-value value-with-dot">
-        <span class="status-dot green"></span>
-        <span>${student.grade}</span>
+      <div class="field-value">
+        ${student.grade}
       </div>
     </div>
 
     <div class="field">
       <div class="field-label">Parents Email ID</div>
-      <div class="field-value">${student.parentEmail}</div>
+      <div class="field-value">
+        ${student.parentEmail}
+      </div>
     </div>
 
     <div class="field">
       <div class="field-label">Teacher(s)</div>
-      <div class="field-value">${teacherText}</div>
+      <div class="field-value">
+        ${teacherText}
+      </div>
     </div>
 
     <div class="field">
       <div class="field-label">Parent(s)</div>
-      <div class="field-value">${parentText}</div>
+      <div class="field-value">
+        ${parentText}
+      </div>
     </div>
 
     <div class="field">
@@ -176,15 +262,36 @@ async function loadMyBooksStudents() {
   for (const student of students) {
     const lending = await getLendingForStudent(student.studentId);
 
-    // My Books contains current AND returned-book sections, so every family
-    // student should be listed here.  The badge shows that student's total
-    // lending records rather than only currently checked-out books.
+    // Determine overall student book status.
+    const hasOverdue = lending.some(book =>
+      !book.returned &&
+      calculateBookStatus(book) === "overdue"
+    );
+
+    const hasUpcoming = lending.some(book =>
+      !book.returned &&
+      calculateBookStatus(book) !== "overdue"
+    );
+
+    let studentStatusClass = "student-books-green";
+
+    if (hasOverdue) {
+      studentStatusClass = "student-books-red";
+    } else if (hasUpcoming) {
+      studentStatusClass = "student-books-orange";
+    }
+
     rows.push(`
       <button class="mybooks-student-row"
               type="button"
               onclick="openStudentBooks('${student.studentId}')">
-        <span class="mybooks-student-name">${studentDisplayName(student)}</span>
+
+        <span class="mybooks-student-name ${studentStatusClass}">
+          ${studentDisplayName(student)}
+        </span>
+
         <span class="count-badge">${lending.length}</span>
+
         <span class="chevron">›</span>
       </button>
     `);
@@ -192,7 +299,7 @@ async function loadMyBooksStudents() {
 
   list.innerHTML = rows.length
     ? rows.join("")
-    : `<div class="mybooks-empty">No books are currently checked out.</div>`;
+    : `<div class="mybooks-empty">No books found.</div>`;
 }
 
 function openStudentBooks(studentId) {
@@ -201,13 +308,128 @@ function openStudentBooks(studentId) {
 }
 
 /* Student's My Books: group current books by Checked Out Date */
-function groupBy(items, keyFn) {
-  return items.reduce((groups, item) => {
-    const key = keyFn(item);
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(item);
-    return groups;
-  }, {});
+function renderStatusSection(
+  sectionId,
+  title,
+  headerClass,
+  books,
+  emptyText,
+  returnedMode = false
+) {
+
+  function renderBooksGroupedByCheckoutDate() {
+
+    if (!books.length) {
+      return `<div class="mybooks-empty">${emptyText}</div>`;
+    }
+
+    // Group books by Checked Out Date.
+    const groupedBooks = groupBy(
+      books,
+      book => book.checkedOutDate || "Unknown"
+    );
+
+    // Sort checkout-date groups newest first.
+    const checkoutDates = Object.keys(groupedBooks).sort((a, b) => {
+      const dateA = parseLocalDate(a);
+      const dateB = parseLocalDate(b);
+
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+
+      return dateB - dateA;
+    });
+
+    return checkoutDates.map(checkoutDate => {
+
+      const dateBooks = groupedBooks[checkoutDate];
+
+      return `
+        <div class="checkout-date-group">
+
+          <div class="checkout-date-header">
+            <span>
+              Checked Out: ${checkoutDate === "Unknown"
+                ? "Unknown"
+                : formatDate(checkoutDate)}
+            </span>
+
+            <span class="checkout-date-count">
+              ${dateBooks.length}
+            </span>
+          </div>
+
+          ${dateBooks.map(book => `
+            <button class="book-item ${returnedMode ? "returned-book" : ""}"
+                    type="button"
+                    onclick="openBookDetails('${book.lendingId}')">
+
+              <div class="book-main">
+
+                <div class="book-title">
+                  ${book.bookTitle}
+                </div>
+
+                <div class="book-due">
+                  ${
+                    returnedMode
+                      ? `Returned On: ${formatDate(book.dateReturned || "")}`
+                      : `Due On: ${formatDate(book.dateToReturn)} - 
+                         <span class="due-relative">
+                           ${dueRelativeText(book.dateToReturn)}
+                         </span>`
+                  }
+                </div>
+
+              </div>
+
+              <div class="book-read-status ${book.bookRead ? "read" : "not-read"}">
+                ${book.bookRead ? "Read" : "Not Read"}
+              </div>
+
+            </button>
+          `).join("")}
+
+        </div>
+      `;
+    }).join("");
+  }
+
+  return `
+    <section class="book-status-section">
+
+      <button
+        class="book-status-header ${headerClass}"
+        type="button"
+        aria-expanded="true"
+        aria-controls="${sectionId}"
+        onclick="toggleBookSection('${sectionId}', this)">
+
+        <span class="book-status-header-grid">
+
+          <span>${title}</span>
+
+          <span class="status-section-count">
+            ${books.length}
+          </span>
+
+          <span class="group-chevron"
+                aria-hidden="true"></span>
+
+        </span>
+
+      </button>
+
+      <div id="${sectionId}"
+           class="book-status-content">
+
+        ${renderBooksGroupedByCheckoutDate()}
+
+      </div>
+
+    </section>
+  `;
 }
 
 
@@ -246,111 +468,353 @@ function toggleBookSection(sectionId, headerButton) {
 }
 
 async function loadStudentBooks() {
-  const params = new URLSearchParams(window.location.search);
-  const studentId = params.get("student") || getSelectedStudent();
-  const groupsContainer = document.getElementById("student-book-groups");
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+
+  const studentId =
+    params.get("student") ||
+    getSelectedStudent();
+
+
+  const adminMode =
+    params.get("mode") === "admin";
+
+
+  const groupsContainer =
+    document.getElementById(
+      "student-book-groups"
+    );
+
+
+  const pageTitle =
+    document.getElementById(
+      "student-books-page-title"
+    );
+
+
+  const familyNav =
+    document.getElementById(
+      "student-books-family-nav"
+    );
+
+
+  const adminNav =
+    document.getElementById(
+      "student-books-admin-nav"
+    );
+
+
+
+  /*
+   * =========================================================
+   * NO STUDENT
+   * =========================================================
+   */
 
   if (!studentId) {
-    groupsContainer.innerHTML = `<div class="mybooks-empty">No student selected.</div>`;
+
+    groupsContainer.innerHTML =
+      `<div class="mybooks-empty">
+         No student selected.
+       </div>`;
+
     return;
+
   }
 
-  setSelectedStudent(studentId);
 
-  const rows = await getLendingForStudent(studentId);
 
-  const overdueBooks = rows
-    .filter(book => !book.returned && calculateBookStatus(book) === "overdue")
-    .sort((a, b) => parseLocalDate(a.dateToReturn) - parseLocalDate(b.dateToReturn));
+  /*
+   * Remember selected student.
+   */
 
-  const upcomingBooks = rows
-    .filter(book => !book.returned && calculateBookStatus(book) !== "overdue")
-    .sort((a, b) => parseLocalDate(a.dateToReturn) - parseLocalDate(b.dateToReturn));
+  setSelectedStudent(
+    studentId
+  );
 
-  const returnedBooks = rows
-    .filter(book => book.returned)
-    .sort((a, b) => {
-      const ad = parseLocalDate(a.dateReturned || a.checkedOutDate);
-      const bd = parseLocalDate(b.dateReturned || b.checkedOutDate);
-      return bd - ad;
-    });
 
-  function renderStatusSection(
-    sectionId,
-    title,
-    headerClass,
-    books,
-    emptyText,
-    returnedMode = false
-  ) {
-    return `
-      <section class="book-status-section">
-        <button
-          class="book-status-header ${headerClass}"
-          type="button"
-          aria-expanded="true"
-          aria-controls="${sectionId}"
-          onclick="toggleBookSection('${sectionId}', this)">
-          <span class="book-status-header-grid">
-            <span>${title}</span>
-            <span class="status-section-count">${books.length}</span>
-            <span class="group-chevron" aria-hidden="true"></span>
-          </span>
-        </button>
 
-        <div id="${sectionId}" class="book-status-content">
-          ${
-            books.length
-              ? books.map(book => `
-                  <button class="book-item ${returnedMode ? "returned-book" : ""}"
-                          type="button"
-                          onclick="openBookDetails('${book.lendingId}')">
-                    <div class="book-main">
-                      <div class="book-title">${book.bookTitle}</div>
-                      <div class="book-due">
-                        ${
-                          returnedMode
-                            ? `Returned On: ${formatDate(book.dateReturned || "")}`
-                            : `Due On: ${formatDate(book.dateToReturn)} - <span class="due-relative">${dueRelativeText(book.dateToReturn)}</span>`
-                        }
-                      </div>
-                    </div>
+  /*
+   * =========================================================
+   * ADMIN MODE
+   * =========================================================
+   *
+   * Admin:
+   *
+   * Header = Student Name
+   *
+   * Bottom:
+   * only MTS சுவடி
+   *
+   * =========================================================
+   */
 
-                    <div class="book-read-status ${book.bookRead ? "read" : "not-read"}">
-                      ${book.bookRead ? "Read" : "Not Read"}
-                    </div>
-                  </button>
-                `).join("")
-              : `<div class="mybooks-empty">${emptyText}</div>`
-          }
-        </div>
-      </section>
-    `;
+  if (adminMode) {
+
+    /*
+     * Get selected student.
+     */
+
+    const student =
+      await getStudentById(
+        studentId
+      );
+
+
+    /*
+     * Put student name in header.
+     */
+
+if (
+  pageTitle &&
+  student
+) {
+
+  pageTitle.textContent =
+    `${studentDisplayName(student)} - ${student.grade}`;
+
+}
+
+
+    /*
+     * Hide normal two-button navigation.
+     */
+
+    if (familyNav) {
+
+      familyNav.hidden = true;
+
+    }
+
+
+    /*
+     * Show Admin single-button navigation.
+     */
+
+    if (adminNav) {
+
+      adminNav.hidden = false;
+
+    }
+
   }
+
+
+
+  /*
+   * =========================================================
+   * NORMAL STUDENT / FAMILY MODE
+   * =========================================================
+   */
+
+  else {
+
+    /*
+     * Keep original header.
+     */
+
+    if (pageTitle) {
+
+      pageTitle.textContent =
+        "My Books";
+
+    }
+
+
+    /*
+     * Show original navigation.
+     */
+
+    if (familyNav) {
+
+      familyNav.hidden = false;
+
+    }
+
+
+    /*
+     * Hide Admin navigation.
+     */
+
+    if (adminNav) {
+
+      adminNav.hidden = true;
+
+    }
+
+  }
+
+
+
+  /*
+   * =========================================================
+   * GET STUDENT'S BOOKS
+   * =========================================================
+   */
+
+  const rows =
+    await getLendingForStudent(
+      studentId
+    );
+
+
+
+  /*
+   * =========================================================
+   * OVERDUE BOOKS
+   * =========================================================
+   */
+
+  const overdueBooks =
+    rows
+
+      .filter(
+        book =>
+          !book.returned &&
+          calculateBookStatus(
+            book
+          ) === "overdue"
+      )
+
+      .sort(
+        (a, b) =>
+          parseLocalDate(
+            a.dateToReturn
+          ) -
+          parseLocalDate(
+            b.dateToReturn
+          )
+      );
+
+
+
+  /*
+   * =========================================================
+   * UPCOMING DUE BOOKS
+   * =========================================================
+   */
+
+  const upcomingBooks =
+    rows
+
+      .filter(
+        book =>
+          !book.returned &&
+          calculateBookStatus(
+            book
+          ) !== "overdue"
+      )
+
+      .sort(
+        (a, b) =>
+          parseLocalDate(
+            a.dateToReturn
+          ) -
+          parseLocalDate(
+            b.dateToReturn
+          )
+      );
+
+
+
+  /*
+   * =========================================================
+   * RETURNED BOOKS
+   * =========================================================
+   */
+
+  const returnedBooks =
+    rows
+
+      .filter(
+        book =>
+          book.returned
+      )
+
+      .sort(
+        (a, b) => {
+
+          const ad =
+            parseLocalDate(
+              a.dateReturned ||
+              a.checkedOutDate
+            );
+
+
+          const bd =
+            parseLocalDate(
+              b.dateReturned ||
+              b.checkedOutDate
+            );
+
+
+          return bd - ad;
+
+        }
+      );
+
+
+
+  /*
+   * =========================================================
+   * DISPLAY BOOK SECTIONS
+   * =========================================================
+   */
 
   groupsContainer.innerHTML =
+
     renderStatusSection(
+
       "overdue-books-content",
+
       "Overdue Books",
+
       "overdue-header",
+
       overdueBooks,
+
       "No overdue books."
-    ) +
+
+    )
+
+    +
+
     renderStatusSection(
+
       "upcoming-books-content",
+
       "Upcoming Due Books",
+
       "upcoming-header",
+
       upcomingBooks,
+
       "No upcoming due books."
-    ) +
+
+    )
+
+    +
+
     renderStatusSection(
+
       "returned-books-content",
+
       "Returned Books",
+
       "returned-header",
+
       returnedBooks,
+
       "No returned books.",
+
       true
+
     );
+
 }
 
 function openBookDetails(lendingId) {
@@ -374,6 +838,7 @@ async function loadBookDetails() {
   }
 
   const student = await getStudentById(book.studentId);
+  const studentStatusClass =   await getStudentBookStatusClass(book.studentId);
   setSelectedStudent(book.studentId);
 
   const status = calculateBookStatus(book);
@@ -389,7 +854,7 @@ async function loadBookDetails() {
   content.innerHTML = `
     <div class="field">
       <div class="field-label">Student</div>
-      <div class="field-value" style="color:#00a51a;font-weight:700;">
+      <div class="field-value ${studentStatusClass}" style="font-weight:700;">
         ${student ? studentDisplayName(student) : book.studentId}
       </div>
     </div>
