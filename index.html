@@ -1,382 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>MTS சுவடி</title>
-
-  <link
-    rel="manifest"
-    href="manifest.json"
-  >
-
-  <meta
-    name="theme-color"
-    content="#ffffff"
-  >
-
-  <link
-    rel="stylesheet"
-    href="styles.css"
-  >
-
-  <!-- Google Identity Services -->
-<script
-  src="https://accounts.google.com/gsi/client"
-  async
-  defer
-></script>
-
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
-
 <body>
+  <header class="topbar">
+    <button class="icon-button" type="button" aria-label="Menu" onclick="toggleSuvadiMenu()">☰</button>
+    <img class="app-logo" src="icons/mts-logo.png" alt="MTS">
+    <div class="page-title">MTS சுவடி</div>
+    <button class="icon-button" type="button" aria-label="Search">⌕</button>
+    <button class="icon-button" type="button" aria-label="Refresh" onclick="refreshPage()">↻</button>
+  </header>
 
-
-  <!-- =====================================================
-       LOGIN SCREEN
-       ===================================================== -->
-
-  <div
-    id="suvadi-login-panel"
-    hidden
-  >
-
-    <header class="topbar">
-
-      <img
-        class="app-logo"
-        src="icons/mts-logo.png"
-        alt="MTS"
-      >
-
-      <div class="page-title">
-        MTS சுவடி
-      </div>
-
-    </header>
-
-
-    <main>
-
-      <div
-        style="
-          max-width:420px;
-          margin:60px auto;
-          padding:30px 20px;
-          text-align:center;
-        "
-      >
-
-        <img
-          src="icons/mts-logo.png"
-          alt="MTS"
-          style="
-            width:90px;
-            height:auto;
-            margin-bottom:20px;
-          "
-        >
-
-
-        <h2
-          style="
-            margin-bottom:10px;
-          "
-        >
-          MTS சுவடி
-        </h2>
-
-
-        <div
-          style="
-            margin-bottom:25px;
-            line-height:1.6;
-          "
-        >
-          உங்கள் குழந்தையின் பள்ளி
-          Google கணக்கைப் பயன்படுத்தி
-          உள்நுழையவும்.
-        </div>
-
-
-        <div
-          style="
-            margin-bottom:25px;
-            font-size:14px;
-          "
-        >
-          Sign in with your child's
-          school Email ID
-        </div>
-
-
-        <div
-          id="google-signin-button"
-          style="
-            display:flex;
-            justify-content:center;
-          "
-        ></div>
-
-
-        <div
-          id="google-signin-status"
-          style="
-            margin-top:18px;
-            font-weight:600;
-          "
-        ></div>
-
-      </div>
-
-    </main>
-
+  <div id="suvadi-menu" hidden style="position:fixed;z-index:20;top:58px;left:10px;background:white;padding:12px;border-radius:10px;box-shadow:0 3px 18px #0003;">
+    <button type="button" onclick="signOutSuvadi()">Sign out</button>
   </div>
 
+  <section id="suvadi-login-panel" style="padding:48px 20px;text-align:center;">
+    <img src="icons/icon-192.png" alt="MTS Suvadi" width="96" height="96" style="border-radius:20px;">
+    <h2>MTS சுவடி</h2>
+    <p>Sign in with your child's MTS school Google account.</p>
+    <button type="button" onclick="handleFirebaseSignIn()" style="padding:12px 20px;font-weight:700;cursor:pointer;">Sign in with Google</button>
+    <div id="google-signin-status" style="margin-top:12px;font-weight:600;"></div>
+  </section>
 
-
-  <!-- =====================================================
-       SUVADI APPLICATION
-       ===================================================== -->
-
-  <div
-    id="suvadi-app-panel"
-    hidden
-  >
-
-
-    <header class="topbar">
-
-<button
-  class="icon-button"
-  type="button"
-  aria-label="Menu"
-  onclick="toggleSuvadiMenu()"
->
-  ☰
-</button>
-
-
-      <img
-        class="app-logo"
-        src="icons/mts-logo.png"
-        alt="MTS"
-      >
-
-
-      <div class="page-title">
-        MTS சுவடி
-      </div>
-
-
-      <button
-        class="icon-button"
-        type="button"
-        aria-label="Search"
-      >
-        ⌕
-      </button>
-
-
-      <button
-        class="icon-button"
-        type="button"
-        aria-label="Refresh"
-        onclick="refreshPage()"
-      >
-        ↻
-      </button>
-
-    <div
-  id="suvadi-menu"
-  hidden
-  style="
-    position:absolute;
-    top:60px;
-    left:10px;
-    background:white;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:8px;
-    z-index:1000;
-    box-shadow:0 3px 12px rgba(0,0,0,0.18);
-  "
->
-
-  <button
-    type="button"
-    onclick="signOutSuvadi()"
-    style="
-      border:none;
-      background:white;
-      padding:12px 20px;
-      font-size:16px;
-      cursor:pointer;
-    "
-  >
-    Sign Out
-  </button>
-
-</div>    
-    
-    </header>
-
-
-
+  <div id="suvadi-app-panel" hidden>
     <main>
-
-      <div
-        class="welcome"
-        id="welcome"
-      >
-        Welcome
-      </div>
-
-
-      <div
-        id="student-list"
-      ></div>
-
-
-      <div
-        class="home-spacer"
-      ></div>
-
+      <div class="welcome" id="welcome">Welcome</div>
+      <div id="student-list"></div>
+      <div class="home-spacer"></div>
     </main>
-
-
-
     <nav class="bottom-nav">
-
-      <a
-        class="nav-item active"
-        href="./index.html"
-      >
-
-        <span class="nav-icon">
-          ⌂
-        </span>
-
-        <span class="nav-label">
-          MTS சுவடி
-        </span>
-
-      </a>
-
-
-      <a
-        class="nav-item"
-        data-my-books-link
-        href="./books.html"
-      >
-
-        <span class="nav-icon">
-          📚
-        </span>
-
-        <span class="nav-label">
-          My Books
-        </span>
-
-      </a>
-
+      <a class="nav-item active" href="./index.html"><span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span></a>
+      <a class="nav-item" data-my-books-link href="./books.html"><span class="nav-icon">📚</span><span class="nav-label">My Books</span></a>
     </nav>
-
-
   </div>
 
-
-
-  <!-- =====================================================
-       JAVASCRIPT
-       ===================================================== -->
-
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="data.js"></script>
-
   <script src="app.js"></script>
-
-
-<script>
-
-  window.addEventListener(
-    "load",
-    async function () {
-
-      /*
-       * First determine whether to show
-       * Login or the existing Suvadi session.
-       */
-      await initializeSuvadiHome();
-
-
-      /*
-       * If login is required, wait until
-       * Google Identity Services is ready
-       * before rendering the button.
-       */
-      let attempts = 0;
-
-      const waitForGoogle =
-        setInterval(function () {
-
-          attempts++;
-
-
-          if (
-            typeof google !== "undefined" &&
-            google.accounts &&
-            google.accounts.id
-          ) {
-
-            clearInterval(
-              waitForGoogle
-            );
-
-            initializeGoogleSignIn();
-
-          }
-
-
-          /*
-           * Stop trying after approximately
-           * 10 seconds.
-           */
-          if (attempts >= 50) {
-
-            clearInterval(
-              waitForGoogle
-            );
-
-            const status =
-              document.getElementById(
-                "google-signin-status"
-              );
-
-            if (status) {
-
-              status.textContent =
-                "Unable to load Google Sign-In. Please refresh the page.";
-
-            }
-
-          }
-
-        }, 200);
-
+  <script>
+    async function handleFirebaseSignIn() {
+      const status = document.getElementById('google-signin-status');
+      try {
+        status.textContent = 'Signing in...';
+        await signInSuvadi();
+        status.textContent = 'Loading your library...';
+        await initializeSuvadiHome();
+      } catch (error) {
+        console.error(error);
+        status.textContent = error.message || 'Unable to sign in.';
+      }
     }
-  );
-
-</script>
-
-
+    window.addEventListener('load', initializeSuvadiHome);
+  </script>
 </body>
-
 </html>

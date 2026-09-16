@@ -436,3 +436,28 @@ button, a { font: inherit; }
   margin-left: 5px;
   font-weight: 700;
 }
+
+/* Clean expand/collapse chevron */
+.group-chevron {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+
+  border-right: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+
+  margin-right: 5px;
+}
+
+/* Expanded = arrow pointing upward */
+.book-status-header[aria-expanded="true"] .group-chevron {
+  transform: rotate(225deg);
+}
+
+/* Collapsed = arrow pointing downward */
+.book-status-header[aria-expanded="false"] .group-chevron {
+  transform: rotate(45deg);
+}

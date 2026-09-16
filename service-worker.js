@@ -1,4 +1,4 @@
-const CACHE_NAME = "suvadi-v8";
+const CACHE_NAME = "suvadi-firebase-v3";
 
 const FILES_TO_CACHE = [
   "./",
@@ -9,6 +9,7 @@ const FILES_TO_CACHE = [
   "./book-details.html",
   "./styles.css",
   "./data.js",
+  "./firebase-config.js",
   "./app.js",
   "./manifest.json",
   "./icons/icon-192.png",
