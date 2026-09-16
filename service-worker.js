@@ -1,4 +1,4 @@
-const CACHE_NAME = "suvadi-firebase-v3";
+const CACHE_NAME = "suvadi-firebase-v5";
 
 const FILES_TO_CACHE = [
   "./",
