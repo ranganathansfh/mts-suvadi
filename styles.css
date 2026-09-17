@@ -952,3 +952,89 @@ button, a { font: inherit; }
   max-width:none !important;
   text-overflow:clip !important;
 }
+
+
+/* SPA v12 - Checked Out / Book Count summary */
+.checkout-date-group {
+  border-top: 1px solid #e7edf3;
+}
+
+.checkout-date-header {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  background:#f8fafc;
+}
+
+.checkout-summary-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:42px;
+  padding:6px 12px;
+  background:#fff;
+  border:1px solid #dde5ed;
+  border-radius:12px;
+  box-shadow:0 1px 3px rgba(15,23,42,.06);
+}
+
+.checkout-summary-icon {
+  font-size:19px;
+  line-height:1;
+}
+
+.checkout-summary-text {
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  white-space:nowrap;
+}
+
+.checkout-summary-label {
+  color:#64748b;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+
+.checkout-summary-text strong {
+  color:#1f2937;
+  font-size:15px;
+  font-weight:800;
+}
+
+.checkout-books-pill {
+  min-width:82px;
+  justify-content:center;
+}
+
+@media (max-width:600px) {
+  .checkout-date-header {
+    gap:7px;
+    padding:8px 10px;
+  }
+
+  .checkout-summary-pill {
+    min-height:38px;
+    padding:5px 9px;
+    border-radius:10px;
+  }
+
+  .checkout-summary-icon {
+    font-size:17px;
+  }
+
+  .checkout-summary-label {
+    font-size:10px;
+  }
+
+  .checkout-summary-text strong {
+    font-size:13px;
+  }
+
+  .checkout-books-pill {
+    min-width:70px;
+  }
+}

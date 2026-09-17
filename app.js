@@ -352,15 +352,24 @@ function renderStatusSection(
         <div class="checkout-date-group">
 
           <div class="checkout-date-header">
-            <span>
-              Checked Out: ${checkoutDate === "Unknown"
-                ? "Unknown"
-                : formatDate(checkoutDate)}
-            </span>
+            <div class="checkout-summary-pill checkout-date-pill">
+              <span class="checkout-summary-icon" aria-hidden="true">📅</span>
+              <span class="checkout-summary-text">
+                <span class="checkout-summary-label">Checked Out</span>
+                <strong>${checkoutDate === "Unknown"
+                  ? "Unknown"
+                  : formatDate(checkoutDate)}</strong>
+              </span>
+            </div>
 
-            <span class="checkout-date-count">
-              ${dateBooks.length}
-            </span>
+            <div class="checkout-summary-pill checkout-books-pill"
+                 aria-label="${dateBooks.length} ${dateBooks.length === 1 ? "book" : "books"}">
+              <span class="checkout-summary-icon" aria-hidden="true">📚</span>
+              <span class="checkout-summary-text">
+                <span class="checkout-summary-label">Books</span>
+                <strong>${dateBooks.length}</strong>
+              </span>
+            </div>
           </div>
 
           ${dateBooks.map(book => {
