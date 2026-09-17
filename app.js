@@ -101,13 +101,39 @@ function setMyBooksLinks() {
 
 function renderSummary(summary) {
   return `
-    <div class="summary-line"><span class="summary-icon">📚</span>Total Books: ${summary.totalBooks}</div>
-    <div class="summary-line"><span class="summary-icon returned-dot">●</span>Returned: ${summary.returned}</div>
-    <div class="summary-line"><span class="summary-icon pending-dot">●</span>Pending: ${summary.pending}</div>
-    <div class="summary-line"><span class="summary-icon overdue-dot">●</span>Overdue: ${summary.overdue}</div>
+    <div class="summary-books-row">
+      <div class="summary-book-item">
+        <span class="summary-icon">📚</span>
+        <span class="summary-label">Total Books:</span>
+        <span class="summary-number">${summary.totalBooks}</span>
+      </div>
+
+      <div class="summary-book-item">
+        <span class="summary-icon">📖</span>
+        <span class="summary-label">Books Read:</span>
+        <span class="summary-number">${summary.booksRead}</span>
+      </div>
+    </div>
+
+    <div class="summary-line">
+      <span class="summary-icon returned-dot">●</span>
+      <span class="summary-label">Returned:</span>
+      <span class="summary-number returned-count">${summary.returned}</span>
+    </div>
+
+    <div class="summary-line">
+      <span class="summary-icon pending-dot">●</span>
+      <span class="summary-label">Pending:</span>
+      <span class="summary-number pending-count">${summary.pending}</span>
+    </div>
+
+    <div class="summary-line">
+      <span class="summary-icon overdue-dot">●</span>
+      <span class="summary-label">Overdue:</span>
+      <span class="summary-number overdue-count">${summary.overdue}</span>
+    </div>
   `;
 }
-
 async function loadHome() {
   const welcome = document.getElementById("welcome");
   const studentList = document.getElementById("student-list");
@@ -153,9 +179,9 @@ async function loadHome() {
 
         <div class="stats">
           <span>📚 ${summary.totalBooks}</span>
-          <span class="returned-dot">●</span> ${summary.returned}
-          <span class="pending-dot">●</span> ${summary.pending}
           <span class="overdue-dot">●</span> ${summary.overdue}
+          <span class="pending-dot">●</span> ${summary.pending}
+          <span class="returned-dot">●</span> ${summary.returned}
         </div>
 
       </button>
@@ -960,20 +986,15 @@ async function loadBookDetails() {
 
   content.innerHTML = `
     <div class="field">
-      <div class="field-label">Student</div>
       <div class="field-value ${studentStatusClass}" style="font-weight:700;">
         ${student ? studentDisplayName(student) : book.studentId}
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="field-label">Grade</div>
-      <div class="field-value">${student ? student.grade : ""}</div>
+      </div>  
+      <div class="field-value" style="font-weight:700;">${student ? student.grade : ""}</div>
     </div>
 
     <div class="field">
       <div class="field-label">Book</div>
-      <div class="field-value" style="color:#e67800;font-weight:700;">
+      <div class="field-value" style="font-weight:700;">
         ${book.bookTitle}
       </div>
     </div>

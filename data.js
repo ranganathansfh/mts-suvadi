@@ -1145,46 +1145,34 @@ function calculateBookStatus(
  * ============================================================
  */
 
-async function getStudentSummary(
-  studentId
-) {
+async function getStudentSummary(studentId) {
 
   const books =
     await getLendingForStudent(
       studentId
     );
 
-
   const summary = {
-
-    totalBooks:
-      books.length,
-
-    returned:
-      0,
-
-    pending:
-      0,
-
-    overdue:
-      0
+    totalBooks: books.length,
+    booksRead:  0,
+    returned:   0,
+    pending:    0,
+    overdue:    0
   };
-
 
   books.forEach(
     book => {
 
-      const status =
-        calculateBookStatus(
-          book
-        );
-
-
+      const status = calculateBookStatus(book);
       summary[status]++;
+
+      // Count books marked as READ by the student
+      if (book.bookRead === true) {
+        summary.booksRead++;
+      }
 
     }
   );
-
 
   return summary;
 }

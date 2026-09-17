@@ -19,10 +19,9 @@
 
 <div id="suvadi-app-panel" hidden>
 <header class="topbar">
-  <span id="spa-menu-button" class="topbar-left-spacer"></span>
-  <button id="spa-back" class="icon-button" type="button" aria-label="Back" onclick="goBack()" hidden>←</button>
-  <img class="app-logo" src="icons/mts-logo.png" alt="MTS">
-  <div id="spa-page-title" class="page-title">MTS சுவடி</div>
+  <div id="spa-page-title" class="page-title">
+    <img src="icons/suvadi-header.png" class="suvadi-header-logo" alt="MTS சுவடி">
+  </div>
   <div class="top-spacer"></div>
   <div class="topbar-actions">
     <button class="top-action-button refresh-action" type="button"
@@ -36,8 +35,6 @@
             onclick="signOutSuvadi()"><span class="top-action-icon">⇥</span><span class="top-action-text">Sign out</span></button>
   </div>
 </header>
-
-</div>
 
 <section id="screen-home" class="spa-screen" hidden>
   <main><div class="welcome" id="welcome">Welcome</div><div id="student-list"></div><div class="home-spacer"></div></main>
@@ -75,15 +72,26 @@
 </section>
 
 <nav id="family-bottom-nav" class="bottom-nav" hidden>
-  <a id="family-nav-home" class="nav-item" href="?view=home" onclick="event.preventDefault();spaNavigate('home')"><span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span></a>
-  <a id="family-nav-books" class="nav-item" data-my-books-link href="?view=books"><span class="nav-icon">📚</span><span class="nav-label">My Books</span></a>
+  <a id="family-nav-back" class="nav-item spa-bottom-back" href="#" onclick="event.preventDefault();goBack()" hidden>
+    <span class="nav-icon">‹</span><span class="nav-label">Back</span>
+  </a>
+  <a id="family-nav-home" class="nav-item" href="?view=home" onclick="event.preventDefault();spaNavigate('home')">
+    <span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span>
+  </a>
+  <a id="family-nav-books" class="nav-item" data-my-books-link href="?view=books">
+    <span class="nav-icon">📚</span><span class="nav-label">My Books</span>
+  </a>
 </nav>
+
 <nav id="admin-bottom-nav" class="bottom-nav" hidden>
-  <a class="nav-item active" href="?view=home" onclick="event.preventDefault();spaNavigate('home')"><span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span></a>
+  <a id="admin-nav-back" class="nav-item spa-bottom-back" href="#" onclick="event.preventDefault();goBack()" hidden>
+    <span class="nav-icon">‹</span><span class="nav-label">Back</span>
+  </a>
+  <a class="nav-item active" href="?view=home" onclick="event.preventDefault();spaNavigate('home')">
+    <span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span>
+  </a>
 </nav>
 </div>
-
-
 
 <div id="suvadi-data-loading" class="suvadi-data-loading" hidden aria-live="polite" aria-busy="true">
   <div class="suvadi-data-loading-card">

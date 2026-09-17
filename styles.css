@@ -932,12 +932,6 @@ button, a { font: inherit; }
   .top-action-icon {
     font-size:14px !important;
   }
-
-  /* Back button should use only the space it needs. */
-  #spa-back {
-    flex:0 0 auto !important;
-    margin-right:3px !important;
-  }
 }
 
 /* Very narrow phones: keep Refresh and Sign out compact so title remains readable. */
@@ -1037,4 +1031,141 @@ button, a { font: inherit; }
   .checkout-books-pill {
     min-width:70px;
   }
+}
+
+.stats .overdue-dot,
+.stats .pending-dot,
+.stats .returned-dot {
+  font-size: 22px;
+  line-height: 13px;
+  vertical-align: -2px;
+}
+
+/* Make admin grade/student count dots larger */
+.admin-book-counts .overdue-dot,
+.admin-book-counts .pending-dot,
+.admin-book-counts .returned-dot {
+  font-size: 22px;
+  line-height: 13px;
+  vertical-align: -2px;
+}
+
+
+/* Force correct colors for student summary dots */
+.stats .overdue-dot {
+  color: var(--red) !important;
+}
+
+.stats .pending-dot {
+  color: var(--orange) !important;
+}
+
+.stats .returned-dot {
+  color: var(--green) !important;
+}
+
+.suvadi-header-logo {
+  display: block;
+  width: auto;
+  height: 50px;
+  max-width: min(100%, 250px);
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* Contextual Back action in the bottom navigation */
+.bottom-nav .spa-bottom-back {
+  color: #0879dc !important;
+  font-weight: 800 !important;
+}
+
+.bottom-nav .spa-bottom-back .nav-icon {
+  font-size: 25px;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .suvadi-header-logo {
+    height: 48px;
+    max-width: 205px;
+  }
+}
+/* Summary book icon */
+.summary-line .summary-icon {
+  min-width: 22px;
+  text-align: center;
+}
+
+/* Enlarge ONLY status dots */
+.summary-line .returned-dot,
+.summary-line .pending-dot,
+.summary-line .overdue-dot {
+  font-size: 20px !important;
+  line-height: 1;
+}
+
+/* Correct colors */
+.summary-line .returned-dot {
+  color: var(--green) !important;
+}
+
+.summary-line .pending-dot {
+  color: var(--orange) !important;
+}
+
+.summary-line .overdue-dot {
+  color: var(--red) !important;
+}
+
+/* Total Books + Books Read side-by-side */
+.summary-top-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+/* Total Books + Books Read on same line */
+.summary-books-row {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  white-space: nowrap;
+}
+
+.summary-book-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Returned / Pending / Overdue */
+.summary-line {
+  display: grid;
+  grid-template-columns: 26px 88px auto;
+  align-items: center;
+}
+
+/* Keep number close to label */
+.summary-number {
+  text-align: left;
+}
+
+/* Summary icons */
+.summary-icon {
+  min-width: 22px;
+  text-align: center;
+}
+/* Summary count colors */
+.returned-count {
+  color: var(--green) !important;
+  font-weight: 600;
+}
+
+.pending-count {
+  color: var(--orange) !important;
+  font-weight: 600;
+}
+
+.overdue-count {
+  color: var(--red) !important;
+  font-weight: 600;
 }

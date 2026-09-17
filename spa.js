@@ -1,36 +1,36 @@
-
 let deferredInstallPrompt = null;
+
 function spaNavigate(view="home", params={}, replace=false) {
   const u=new URL(location.href);
   u.search="";
   if(view && view!=="home") u.searchParams.set("view",view);
-  Object.entries(params).forEach(([k,v])=>{ if(v!==undefined && v!==null && v!=="") u.searchParams.set(k,v); });
+  Object.entries(params).forEach(([k,v])=>{
+    if(v!==undefined && v!==null && v!=="") u.searchParams.set(k,v);
+  });
   history[replace?"replaceState":"pushState"]({view},"",u.pathname+u.search+u.hash);
   renderSpaRoute();
 }
+
 function showSpaScreen(id) {
   document.querySelectorAll(".spa-screen").forEach(el=>el.hidden=true);
-  const el=document.getElementById(id); if(el) el.hidden=false;
+  const el=document.getElementById(id);
+  if(el) el.hidden=false;
 }
+
 function updateTopbar(view) {
   const title = document.getElementById("spa-page-title");
-  const back = document.getElementById("spa-back");
-  const leftSpacer = document.getElementById("spa-menu-button");
+  if (title) {
+    title.innerHTML =
+      '<img src="icons/suvadi-header.png" class="suvadi-header-logo" alt="MTS சுவடி">';
+  }
 
-  const titles = {
-    "home": "MTS சுவடி",
-    "details": "Details",
-    "books": "My Books",
-    "student-books": "My Books",
-    "book-details": "Details",
-    "admin-students": "Students"
-  };
+  // Back is contextual and lives only in the bottom navigation.
+  const showBack = !["home", "books"].includes(view);
+  const familyBack = document.getElementById("family-nav-back");
+  const adminBack = document.getElementById("admin-nav-back");
 
-  title.textContent = titles[view] || "MTS சுவடி";
-
-  const root = view === "home" || view === "books";
-  back.hidden = root;
-  if (leftSpacer) leftSpacer.hidden = !root;
+  if (familyBack) familyBack.hidden = !showBack;
+  if (adminBack) adminBack.hidden = !showBack;
 
   updateBottomNavSelection(view);
 }
@@ -43,7 +43,6 @@ function updateBottomNavSelection(view) {
   home.classList.remove("active");
   books.classList.remove("active");
 
-  // Student list and book details are descendants of My Books.
   const myBooksViews = ["books", "student-books", "book-details"];
 
   if (myBooksViews.includes(view)) {
@@ -52,6 +51,7 @@ function updateBottomNavSelection(view) {
     home.classList.add("active");
   }
 }
+
 function showDataLoading(message = "Retrieving the latest library data") {
   const overlay = document.getElementById("suvadi-data-loading");
   const text = overlay?.querySelector(".suvadi-loading-message");
@@ -145,14 +145,23 @@ async function renderSpaRoute(force=false) {
     hideDataLoading();
   }
 }
+
 async function handleFirebaseSignIn(){
   const status=document.getElementById("google-signin-status");
-  try{ status.textContent="Signing in..."; await signInSuvadi(); await renderSpaRoute(true); }
-  catch(e){ console.error(e); status.textContent=e.message||"Unable to sign in."; }
+  try{
+    status.textContent="Signing in...";
+    await signInSuvadi();
+    await renderSpaRoute(true);
+  } catch(e){
+    console.error(e);
+    status.textContent=e.message||"Unable to sign in.";
+  }
 }
+
 function installSuvadiApp(){
   if(window.matchMedia("(display-mode: standalone)").matches || navigator.standalone){
-    alert("MTS Suvadi is already installed on this device."); return;
+    alert("MTS Suvadi is already installed on this device.");
+    return;
   }
   if(deferredInstallPrompt){
     deferredInstallPrompt.prompt();
@@ -163,7 +172,11 @@ function installSuvadiApp(){
   if(ios) alert("On iPhone/iPad: open this page in Safari, tap Share, then tap Add to Home Screen.");
   else alert("Use your browser menu and choose Install app or Add to Home screen.");
 }
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;});
+
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+});
 window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;});
 window.addEventListener("popstate",()=>renderSpaRoute());
 window.addEventListener("load",()=>renderSpaRoute());
