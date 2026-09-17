@@ -883,3 +883,72 @@ button, a { font: inherit; }
 
 /* SPA v10 - Home Screen action */
 #suvadi-shortcut-button[hidden] { display:none !important; }
+
+/* SPA v11 - mobile top bar/title alignment */
+.topbar-left-spacer {
+  display:none !important;
+  width:0 !important;
+  flex:0 0 0 !important;
+}
+
+#spa-page-title {
+  flex:1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+}
+
+@media (max-width:600px) {
+  .app-topbar,
+  .topbar,
+  header.app-header {
+    padding-left:8px !important;
+    padding-right:6px !important;
+  }
+
+  #spa-page-title {
+    font-size:18px !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+
+  .topbar-actions {
+    flex:0 0 auto;
+    gap:3px !important;
+    margin-left:6px !important;
+    padding-right:0 !important;
+  }
+
+  .top-action-button {
+    height:32px !important;
+    padding:0 6px !important;
+    gap:3px !important;
+    font-size:10px !important;
+    border-radius:8px !important;
+  }
+
+  .top-action-icon {
+    font-size:14px !important;
+  }
+
+  /* Back button should use only the space it needs. */
+  #spa-back {
+    flex:0 0 auto !important;
+    margin-right:3px !important;
+  }
+}
+
+/* Very narrow phones: keep Refresh and Sign out compact so title remains readable. */
+@media (max-width:390px) {
+  #spa-page-title { font-size:17px !important; }
+  .top-action-button { padding:0 5px !important; font-size:9.5px !important; }
+  .topbar-actions { gap:2px !important; margin-left:4px !important; }
+}
+
+#spa-page-title,
+#spa-page-title * {
+  max-width:none !important;
+  text-overflow:clip !important;
+}
