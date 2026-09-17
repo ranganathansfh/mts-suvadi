@@ -1,0 +1,885 @@
+* { box-sizing: border-box; }
+
+:root {
+  --border: #d9dce1;
+  --bg: #f7f8fa;
+  --text: #202124;
+  --muted: #6b7280;
+  --active-blue: #4b98df;
+  --green: #00a51a;
+  --orange: #e67800;
+  --red: #dc3851;
+  --light-gray: #f2f3f5;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  min-height: 100vh;
+  padding-bottom: 64px;
+}
+
+button, a { font: inherit; }
+
+.topbar {
+  height: 58px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.icon-button {
+  border: 0;
+  background: transparent;
+  width: 32px;
+  min-width: 32px;
+  height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #30343a;
+  font-size: 25px;
+}
+
+.app-logo {
+  width: 35px;
+  height: 35px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.page-title {
+  flex: 1;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.welcome {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 7px 10px 8px;
+  font-size: 18px;
+  line-height: 23px;
+}
+
+.student-card {
+  width: 100%;
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px 9px;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.student-card:active,
+.mybooks-student-row:active,
+.book-item:active {
+  background: #f0f3f7;
+}
+
+.student-row {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.status-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 7px;
+  flex: 0 0 auto;
+}
+
+.green { background: var(--green); }
+.orange { background: var(--orange); }
+.red { background: var(--red); }
+
+.stats {
+  margin-top: 4px;
+  margin-left: 1px;
+  font-size: 13px;
+  line-height: 16px;
+  color: #777;
+  letter-spacing: 1px;
+}
+
+.returned-dot { color: #35bf83; }
+.pending-dot { color: #ff8b4d; }
+.overdue-dot { color: var(--red); }
+
+.home-spacer {
+  min-height: calc(100vh - 238px);
+}
+
+.details-content {
+  background: #fff;
+  min-height: calc(100vh - 119px);
+  padding: 17px 12px 95px;
+}
+
+.field { margin-bottom: 18px; }
+
+.field-label {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.field-value {
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.value-with-dot {
+  display: flex;
+  align-items: center;
+}
+
+.summary-line {
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.summary-icon {
+  display: inline-block;
+  width: 22px;
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 63px;
+  background: #fff;
+  border-top: 1px solid #d3d6da;
+  display: flex;
+  z-index: 30;
+}
+
+.nav-item {
+  flex: 1;
+  text-align: center;
+  padding-top: 7px;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+}
+
+.nav-item.active {
+  background: var(--active-blue);
+  color: #fff;
+}
+
+.nav-icon {
+  display: block;
+  font-size: 23px;
+  height: 29px;
+  line-height: 25px;
+}
+
+.nav-label {
+  display: block;
+  margin-top: 1px;
+}
+
+.error-box {
+  margin: 16px;
+  padding: 12px;
+  border: 1px solid #e3e3e3;
+  background: #fff;
+  font-size: 14px;
+}
+
+/* MY BOOKS - root screen */
+.mybooks-list {
+  background: #fff;
+}
+
+.mybooks-student-row {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  padding: 7px 8px 7px 10px;
+  display: grid;
+  grid-template-columns: 1fr auto 28px;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mybooks-student-name {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count-badge {
+  display: inline-flex;
+  min-width: 20px;
+  height: 22px;
+  padding: 0 6px;
+  align-items: center;
+  justify-content: center;
+  background: #eceff2;
+  color: #777;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.chevron {
+  font-size: 28px;
+  line-height: 1;
+  color: #333;
+  text-align: center;
+}
+
+/* MY BOOKS - selected student screen */
+.book-date-group {
+  background: #fff;
+}
+
+.book-date-header {
+  min-height: 32px;
+  background: #f3f4f6;
+  border-bottom: 1px solid var(--border);
+  padding: 5px 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.book-date-label {
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.book-item {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  padding: 9px 10px 10px 15px;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 74px;
+  gap: 8px;
+  text-align: left;
+}
+
+.book-main {
+  min-width: 0;
+}
+
+.book-title {
+  color: var(--orange);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-due {
+  margin-top: 6px;
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.book-read-status {
+  align-self: start;
+  justify-self: end;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.book-read-status.read { color: var(--green); }
+.book-read-status.not-read { color: var(--orange); }
+
+.mybooks-empty {
+  padding: 16px 12px;
+  color: #777;
+  background: #fff;
+  font-size: 14px;
+}
+
+.top-spacer {
+  flex: 1;
+}
+
+@media (max-width: 380px) {
+  .page-title { font-size: 17px; }
+  .mybooks-student-name { font-size: 12px; }
+  .book-title { font-size: 13px; }
+}
+
+/* Grouped student books */
+.book-status-section {
+  background: #fff;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.book-status-header {
+  min-height: 40px;
+  padding: 9px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.book-status-header.overdue-header {
+  background: #fdecec;
+  color: #b42318;
+}
+
+.book-status-header.upcoming-header {
+  background: #fff3e6;
+  color: #c96800;
+}
+
+.book-status-header.returned-header {
+  background: #eaf8ee;
+  color: #138a2e;
+}
+
+.status-section-count {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.75);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  color: inherit;
+}
+
+.returned-book .book-title {
+  color: #138a2e;
+}
+
+.returned-book .book-due {
+  color: #666;
+  font-weight: 400;
+}
+/* Collapsible book-group headers */
+.book-status-header {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.book-status-header-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.group-chevron {
+  font-size: 22px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.book-status-header[aria-expanded="false"] .group-chevron {
+  transform: rotate(-90deg);
+}
+
+.book-status-content[hidden] {
+  display: none;
+}
+
+.due-relative {
+  margin-left: 5px;
+  font-weight: 700;
+}
+
+/* Clean expand/collapse chevron */
+.group-chevron {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+
+  border-right: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+
+  margin-right: 5px;
+}
+
+/* Expanded = arrow pointing upward */
+.book-status-header[aria-expanded="true"] .group-chevron {
+  transform: rotate(225deg);
+}
+
+/* Collapsed = arrow pointing downward */
+.book-status-header[aria-expanded="false"] .group-chevron {
+  transform: rotate(45deg);
+}
+.admin-main {
+  padding: 0 0 84px;
+}
+
+.admin-subtitle {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+  background: #f6f6f6;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.admin-list {
+  background: #fff;
+}
+
+.admin-list-row {
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-row-name {
+  flex: 1;
+  font-weight: 700;
+}
+
+.admin-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-count {
+  min-width: 28px;
+  text-align: right;
+  color: #666;
+  font-size: 13px;
+}
+
+.admin-chevron {
+  font-size: 26px;
+  line-height: 1;
+  color: #777;
+}
+
+.admin-status-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+}
+
+.admin-status-dot.red { background: var(--red, #dc3851); }
+.admin-status-dot.orange { background: var(--orange, #e67800); }
+.admin-status-dot.green { background: var(--green, #00a51a); }
+
+.admin-student-name {
+  flex: 1;
+  font-weight: 700;
+}
+
+.admin-student-name.red { color: var(--red, #dc3851); }
+.admin-student-name.orange { color: var(--orange, #e67800); }
+.admin-student-name.green { color: var(--green, #00a51a); }
+
+.admin-student-id {
+  font-weight: 500;
+}
+
+.admin-empty,
+.admin-error {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.admin-error {
+  color: var(--red, #dc3851);
+  font-weight: 700;
+}
+
+.admin-signout {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+[hidden]{display:none!important}
+.spa-screen{min-height:calc(100dvh - 112px)}
+.suvadi-startup-screen{position:fixed;inset:0;width:100%;height:100dvh;overflow:hidden;background:#0879dc;z-index:1000}
+.suvadi-startup-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.suvadi-login-controls{position:absolute;left:50%;bottom:max(32px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(88%,360px);z-index:2;text-align:center}
+.suvadi-google-signin{width:100%;min-height:48px;padding:11px 20px;border:2px solid #fff;border-radius:24px;background:rgba(255,255,255,.96);color:#1254a3;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.suvadi-login-status{min-height:18px;margin-top:9px;color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.suvadi-menu{position:fixed;z-index:1100;top:58px;left:10px;background:#fff;min-width:210px;padding:8px;border-radius:10px;box-shadow:0 3px 18px #0003}
+.suvadi-menu-item{display:block;width:100%;border:0;background:#fff;text-align:left;padding:12px;font-size:15px;cursor:pointer}
+.suvadi-menu-divider{height:1px;background:#e5e7eb;margin:4px 0}
+.suvadi-signout-item{color:#b42318}
+.admin-subcounts{display:block;margin-top:5px;font-size:12px;font-weight:600}
+.admin-book-counts{white-space:nowrap}
+.spa-admin-header{padding:14px 16px 6px}
+.spa-admin-title{font-size:22px;font-weight:800}
+.spa-admin-school{font-size:13px;color:#6b7280;margin-top:2px}
+
+/* SPA v2: admin status colors use unique class names to avoid collisions. */
+.admin-student-name.suvadi-status-green { color: var(--green); background: transparent !important; }
+.admin-student-name.suvadi-status-orange { color: var(--orange); background: transparent !important; }
+.admin-student-name.suvadi-status-red { color: var(--red); background: transparent !important; }
+
+.admin-status-dot.suvadi-status-green { background: var(--green) !important; }
+.admin-status-dot.suvadi-status-orange { background: var(--orange) !important; }
+.admin-status-dot.suvadi-status-red { background: var(--red) !important; }
+
+.admin-student-row,
+.admin-student-row:hover,
+.admin-student-row:focus {
+  background: #fff;
+}
+
+/* SPA v3: class/grade name reflects aggregate book status. */
+.admin-row-name.suvadi-grade-status-red { color: var(--red) !important; background: transparent !important; }
+.admin-row-name.suvadi-grade-status-orange { color: var(--orange) !important; background: transparent !important; }
+.admin-row-name.suvadi-grade-status-green { color: var(--green) !important; background: transparent !important; }
+
+/* Keep the book-count text readable; only the class/grade name inherits status color. */
+.admin-row-name .admin-subcounts { color: var(--text) !important; }
+
+/* SPA v4: status counts use their respective colors everywhere. */
+.overdue-dot,
+.overdue-dot + span,
+.overdue-count,
+.status-overdue-count {
+  color: var(--red) !important;
+}
+
+.pending-dot,
+.pending-dot + span,
+.pending-count,
+.status-pending-count {
+  color: var(--orange) !important;
+}
+
+.returned-dot,
+.returned-dot + span,
+.returned-count,
+.status-returned-count {
+  color: var(--green) !important;
+}
+
+/* Admin count markup places the number as a text node after each dot.
+   Color each dot+number pair explicitly through dedicated wrapper styling. */
+.admin-book-counts {
+  color: var(--text);
+}
+.admin-book-counts .overdue-dot { color: var(--red) !important; }
+.admin-book-counts .pending-dot { color: var(--orange) !important; }
+.admin-book-counts .returned-dot { color: var(--green) !important; }
+
+.admin-status-count.overdue-count { color: var(--red) !important; }
+.admin-status-count.pending-count { color: var(--orange) !important; }
+.admin-status-count.returned-count { color: var(--green) !important; }
+
+/* Semantic count/status colors from existing app markup. */
+.book-read-status { color: var(--green) !important; }
+.overdue-dot { color: var(--red) !important; }
+.pending-dot { color: var(--orange) !important; }
+.returned-dot { color: var(--green) !important; }
+
+/* SPA v5 - family/student status colors */
+.mybooks-student-name.student-books-red { color: var(--red) !important; }
+.mybooks-student-name.student-books-orange { color: var(--orange) !important; }
+.mybooks-student-name.student-books-green { color: var(--green) !important; }
+
+#student-books-page-title.student-books-red { color: var(--red) !important; }
+#student-books-page-title.student-books-orange { color: var(--orange) !important; }
+#student-books-page-title.student-books-green { color: var(--green) !important; }
+
+/* SPA v5 - compact rounded Read / Unread actions */
+.book-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.book-main-button {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+.book-read-action {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  min-width: 108px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .15px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.14);
+}
+.book-read-action.mark-read {
+  background: #0879dc;
+}
+.book-read-action.mark-unread {
+  background: #dc3851;
+}
+.book-read-action:active {
+  transform: scale(.97);
+}
+.book-detail-action-area {
+  margin-top: 24px;
+  margin-bottom: 90px;
+  text-align: center;
+}
+.book-detail-action-area .book-read-action {
+  min-width: 150px;
+  padding: 12px 18px;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .book-read-action {
+    min-width: 92px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+
+/* SPA v6 - custom Read/Unread confirmation */
+.suvadi-confirm-overlay{position:fixed;inset:0;z-index:5000;background:rgba(15,23,42,.48);display:flex;align-items:center;justify-content:center;padding:20px}
+.suvadi-confirm-overlay[hidden]{display:none!important}
+.suvadi-confirm-card{width:min(92vw,390px);background:#fff;border-radius:22px;padding:24px 22px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.suvadi-confirm-icon{font-size:42px;line-height:1;margin-bottom:12px}
+.suvadi-confirm-title{font-size:20px;font-weight:800;color:#202124;margin-bottom:8px}
+.suvadi-confirm-message{font-size:14px;line-height:1.45;color:#5f6368;margin-bottom:20px}
+.suvadi-confirm-actions{display:flex;gap:10px;justify-content:center}
+.suvadi-confirm-button{border:0;border-radius:999px;min-height:42px;padding:10px 18px;font-size:12px;font-weight:800;cursor:pointer}
+.suvadi-confirm-button.confirm-cancel{background:#eef1f4;color:#3c4043}
+.suvadi-confirm-button.confirm-blue{background:#0879dc;color:#fff}
+.suvadi-confirm-button.confirm-red{background:#dc3851;color:#fff}
+.suvadi-confirm-button:active{transform:scale(.97)}
+
+/* SPA v7 - top-right actions, tooltips, active bottom tabs, loading overlay */
+.topbar-left-spacer { width: 40px; flex: 0 0 40px; }
+.topbar-actions { display:flex; align-items:center; gap:8px; margin-left:auto; padding-right:6px; }
+.top-action-button {
+  position:relative; width:38px; height:38px; border:0; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:22px; font-weight:800; cursor:pointer;
+  box-shadow:0 2px 7px rgba(0,0,0,.13);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.top-action-button:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.18); }
+.top-action-button:active { transform:scale(.95); }
+.refresh-action { background:#e8f2ff; color:#0879dc; }
+.install-action { background:#eaf8ee; color:#16883b; }
+.signout-action { background:#fdecec; color:#c62828; }
+.top-action-button::after {
+  content:attr(data-tooltip); position:absolute; top:46px; right:0;
+  white-space:nowrap; background:#202124; color:#fff; font-size:11px;
+  font-weight:600; padding:6px 8px; border-radius:6px; opacity:0;
+  pointer-events:none; transform:translateY(-3px); transition:.15s; z-index:3000;
+}
+.top-action-button:hover::after,
+.top-action-button:focus-visible::after { opacity:1; transform:translateY(0); }
+
+.bottom-nav .nav-item.active {
+  color:#0879dc !important;
+  font-weight:800;
+}
+.bottom-nav .nav-item.active .nav-icon {
+  transform:scale(1.08);
+}
+.bottom-nav .nav-item.active::before {
+  content:""; position:absolute; top:0; left:24%; right:24%;
+  height:3px; border-radius:0 0 4px 4px; background:#0879dc;
+}
+.bottom-nav .nav-item { position:relative; }
+
+.suvadi-data-loading {
+  position:fixed; inset:0; z-index:4800; display:flex; align-items:center;
+  justify-content:center; background:rgba(255,255,255,.56);
+  backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+}
+.suvadi-data-loading[hidden] { display:none!important; }
+.suvadi-data-loading-card {
+  min-width:210px; max-width:82vw; padding:24px 26px; background:#fff;
+  border-radius:20px; text-align:center; box-shadow:0 16px 45px rgba(0,0,0,.20);
+}
+.suvadi-spinner {
+  width:44px; height:44px; margin:0 auto 13px; border-radius:50%;
+  border:5px solid #dcecff; border-top-color:#0879dc;
+  animation:suvadi-spin .75s linear infinite;
+}
+@keyframes suvadi-spin { to { transform:rotate(360deg); } }
+.suvadi-loading-title { font-size:17px; font-weight:800; color:#202124; }
+.suvadi-loading-message { margin-top:5px; font-size:12px; color:#6b7280; }
+
+@media (max-width:600px) {
+  .topbar-actions { gap:5px; }
+  .top-action-button { width:34px; height:34px; font-size:19px; }
+  .top-action-button::after { display:none; }
+  .topbar-left-spacer { width:34px; flex-basis:34px; }
+}
+
+/* SPA v8 - refined header actions and stronger bottom-tab selection */
+.topbar-actions {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-left:auto;
+  padding-right:8px;
+}
+.top-action-button {
+  width:auto !important;
+  height:36px !important;
+  min-width:0;
+  padding:0 12px !important;
+  border:1px solid #d9e1ea !important;
+  border-radius:10px !important;
+  background:#fff !important;
+  color:#344054 !important;
+  box-shadow:0 1px 3px rgba(16,24,40,.08) !important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-size:13px !important;
+  font-weight:700 !important;
+  line-height:1;
+}
+.top-action-button:hover {
+  background:#f7f9fc !important;
+  border-color:#b9c8da !important;
+  transform:none !important;
+  box-shadow:0 2px 5px rgba(16,24,40,.10) !important;
+}
+.top-action-button:active {
+  background:#eef4fb !important;
+  transform:scale(.98) !important;
+}
+.top-action-icon {
+  font-size:18px;
+  line-height:1;
+  font-weight:800;
+}
+.refresh-action .top-action-icon { color:#0879dc; }
+.install-action .top-action-icon { color:#16883b; }
+.signout-action .top-action-icon { color:#c62828; }
+.signout-action .top-action-text { color:#a61b1b; }
+
+/* Text makes the action clear, so tooltip is no longer visually necessary. */
+.top-action-button::after { display:none !important; }
+
+/* Stronger selected bottom tab: white nav with blue indicator + blue icon/text. */
+.bottom-nav {
+  background:#fff !important;
+}
+.bottom-nav .nav-item {
+  background:#fff !important;
+  color:#667085 !important;
+  font-weight:600 !important;
+  transition:background .15s ease,color .15s ease;
+}
+.bottom-nav .nav-item.active {
+  background:#edf6ff !important;
+  color:#0879dc !important;
+  font-weight:800 !important;
+}
+.bottom-nav .nav-item.active::before {
+  content:"";
+  position:absolute;
+  top:0;
+  left:12%;
+  right:12%;
+  height:4px;
+  border-radius:0 0 5px 5px;
+  background:#0879dc;
+}
+.bottom-nav .nav-item.active .nav-icon,
+.bottom-nav .nav-item.active .nav-label {
+  color:#0879dc !important;
+}
+.bottom-nav .nav-item:not(.active) .nav-icon,
+.bottom-nav .nav-item:not(.active) .nav-label {
+  color:#667085 !important;
+}
+
+@media (max-width:600px) {
+  .topbar-actions { gap:4px; padding-right:4px; }
+  .top-action-button {
+    height:34px !important;
+    padding:0 8px !important;
+    border-radius:9px !important;
+    gap:4px;
+    font-size:11px !important;
+  }
+  .top-action-icon { font-size:16px; }
+}
+@media (max-width:390px) {
+  .top-action-button { padding:0 6px !important; }
+  .top-action-text { font-size:10px; }
+}
+
+/* SPA v10 - Home Screen action */
+#suvadi-shortcut-button[hidden] { display:none !important; }

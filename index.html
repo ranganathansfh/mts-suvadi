@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MTS சுவடி</title>
+<meta name="theme-color" content="#0879dc">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<section id="suvadi-login-panel" class="suvadi-startup-screen">
+  <img src="icons/suvadi-loading.png" alt="MTS சுவடி" class="suvadi-startup-image">
+  <div class="suvadi-login-controls">
+    <button class="suvadi-google-signin" type="button" onclick="handleFirebaseSignIn()">Sign in with Google</button>
+    <div id="google-signin-status" class="suvadi-login-status"></div>
+  </div>
+</section>
+
+<div id="suvadi-app-panel" hidden>
+<header class="topbar">
+  <span id="spa-menu-button" class="topbar-left-spacer"></span>
+  <button id="spa-back" class="icon-button" type="button" aria-label="Back" onclick="goBack()" hidden>←</button>
+  <img class="app-logo" src="icons/mts-logo.png" alt="MTS">
+  <div id="spa-page-title" class="page-title">MTS சுவடி</div>
+  <div class="top-spacer"></div>
+  <div class="topbar-actions">
+    <button class="top-action-button refresh-action" type="button"
+            aria-label="Refresh data" data-tooltip="Refresh data"
+            onclick="refreshPage()"><span class="top-action-icon">↻</span><span class="top-action-text">Refresh</span></button>
+    <button id="suvadi-shortcut-button" class="top-action-button install-action" type="button"
+            aria-label="Add to Home Screen" data-tooltip="Add to Home Screen"
+            onclick="installSuvadiApp()"><span class="top-action-icon">＋</span><span class="top-action-text">Home Screen</span></button>
+    <button class="top-action-button signout-action" type="button"
+            aria-label="Sign out" data-tooltip="Sign out"
+            onclick="signOutSuvadi()"><span class="top-action-icon">⇥</span><span class="top-action-text">Sign out</span></button>
+  </div>
+</header>
+
+</div>
+
+<section id="screen-home" class="spa-screen" hidden>
+  <main><div class="welcome" id="welcome">Welcome</div><div id="student-list"></div><div class="home-spacer"></div></main>
+</section>
+
+<section id="screen-details" class="spa-screen" hidden>
+  <main id="details-content" class="details-content">Loading...</main>
+</section>
+
+<section id="screen-books" class="spa-screen" hidden>
+  <main><div id="mybooks-students"></div><div class="home-spacer"></div></main>
+</section>
+
+<section id="screen-student-books" class="spa-screen" hidden>
+  <main>
+    <div id="student-books-page-title" class="welcome">My Books</div>
+    <div id="student-book-groups"></div><div class="home-spacer"></div>
+  </main>
+  <nav id="student-books-family-nav" hidden></nav>
+  <nav id="student-books-admin-nav" hidden></nav>
+</section>
+
+<section id="screen-book-details" class="spa-screen" hidden>
+  <main id="details-content-book" class="details-content"></main>
+</section>
+
+<section id="screen-admin-home" class="spa-screen" hidden>
+  <div class="spa-admin-header"><div class="spa-admin-title">Classes</div><div id="admin-school" class="spa-admin-school"></div></div>
+  <main id="admin-class-list"></main>
+</section>
+
+<section id="screen-admin-students" class="spa-screen" hidden>
+  <div class="spa-admin-header"><div id="admin-students-title" class="spa-admin-title">Students</div><div id="admin-students-school" class="spa-admin-school"></div></div>
+  <main id="admin-student-list"></main>
+</section>
+
+<nav id="family-bottom-nav" class="bottom-nav" hidden>
+  <a id="family-nav-home" class="nav-item" href="?view=home" onclick="event.preventDefault();spaNavigate('home')"><span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span></a>
+  <a id="family-nav-books" class="nav-item" data-my-books-link href="?view=books"><span class="nav-icon">📚</span><span class="nav-label">My Books</span></a>
+</nav>
+<nav id="admin-bottom-nav" class="bottom-nav" hidden>
+  <a class="nav-item active" href="?view=home" onclick="event.preventDefault();spaNavigate('home')"><span class="nav-icon">⌂</span><span class="nav-label">MTS சுவடி</span></a>
+</nav>
+</div>
+
+
+
+<div id="suvadi-data-loading" class="suvadi-data-loading" hidden aria-live="polite" aria-busy="true">
+  <div class="suvadi-data-loading-card">
+    <div class="suvadi-spinner" aria-hidden="true"></div>
+    <div class="suvadi-loading-title">Loading...</div>
+    <div class="suvadi-loading-message">Retrieving the latest library data</div>
+  </div>
+</div>
+
+<div id="suvadi-confirm-modal" class="suvadi-confirm-overlay" hidden>
+  <div class="suvadi-confirm-card" role="dialog" aria-modal="true" aria-labelledby="suvadi-confirm-title">
+    <div id="suvadi-confirm-icon" class="suvadi-confirm-icon">📖</div>
+    <div id="suvadi-confirm-title" class="suvadi-confirm-title">Confirm</div>
+    <div id="suvadi-confirm-message" class="suvadi-confirm-message"></div>
+    <div class="suvadi-confirm-actions">
+      <button id="suvadi-confirm-no" class="suvadi-confirm-button confirm-cancel" type="button">CANCEL</button>
+      <button id="suvadi-confirm-yes" class="suvadi-confirm-button confirm-blue" type="button">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="admin.js"></script>
+<script src="spa.js"></script>
+</body></html>
