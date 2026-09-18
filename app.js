@@ -419,15 +419,20 @@ function renderStatusSection(
                 <button class="book-main book-main-button"
                         type="button"
                         onclick="openBookDetails('${book.lendingId}')">
-                  <div class="book-title">${book.bookTitle}</div>
+                  <div class="book-title">
+                    <span class="book-reading-icon">${book.bookRead ? "📖" : "📕"}</span>
+                    ${book.bookTitle}
+                  </div>
                   <div class="book-due">
                     ${
                       returnedMode
                         ? `Returned On: ${formatDate(book.dateReturned || "")}`
-                        : `Due On: ${formatDate(book.dateToReturn)} -
-                           <span class="due-relative">
-                             ${dueRelativeText(book.dateToReturn)}
-                           </span>`
+                        : daysUntil(book.dateToReturn) < 0
+                          ? `Due On: ${formatDate(book.dateToReturn)} -
+                            <span class="overdue-relative">
+                              ${dueRelativeText(book.dateToReturn)}
+                            </span>`
+                          : `Due On: ${formatDate(book.dateToReturn)}`
                     }
                   </div>
                 </button>
@@ -1023,10 +1028,10 @@ async function loadBookDetails() {
 
     <div class="field">
       <div class="field-label">Book Read</div>
-      <div class="field-value ${book.bookRead ? "returned-dot" : "pending-dot"}"
-           style="font-weight:700;">
-        ${book.bookRead ? "Read" : "Not Read"}
-      </div>
+      <div class="field-value ${book.bookRead ? "book-read-detail" : "book-not-read-detail"}"
+     style="font-weight:700;">
+  ${book.bookRead ? "Read" : "Not Read"}
+</div>
     </div>
   `;
 
