@@ -577,10 +577,6 @@ async function loadAdminReaderBooks() {
     title.textContent =
       `${student.studentName} - ${student.grade}`;
 
-    schoolLabel.textContent =
-      `${data.admin.school} Admin`;
-
-
     /*
      * Get only books marked READ.
      */

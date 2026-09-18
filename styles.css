@@ -1417,3 +1417,38 @@ button, a { font: inherit; }
 .reader-book-date {
   line-height: 1;
 }
+
+/* Readers List - Student heading */
+
+#admin-reader-books-title {
+  font-size: 14px !important;
+  color: #1e6705 !important;
+  font-weight: 700;
+  line-height: 1.25;
+}
+/* Compact Readers List student header */
+
+#screen-admin-reader-books .spa-admin-header {
+  padding-bottom: 6px !important;
+  margin-bottom: 0 !important;
+}
+
+#admin-reader-books-title {
+  margin-bottom: 0 !important;
+}
+
+#admin-reader-books-school {
+  display: none !important;
+}
+
+#screen-admin-reader-books .reader-books-count {
+  margin-top: 0 !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* Align Books Read with book-row icons */
+#screen-admin-reader-books .reader-books-count {
+  padding-left: 10px !important;
+}
+
