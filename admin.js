@@ -283,17 +283,12 @@ async function loadAdminStudents() {
           <button
             class="admin-list-row admin-student-row"
             type="button"
-            onclick='openAdminReaderBooks(${JSON.stringify(student.studentId)})'>
+            onclick='openAdminStudent(${JSON.stringify(student.studentId)})'>
 
             <span class="admin-status-dot suvadi-status-${status}"></span>
 
             <span class="admin-student-name suvadi-status-${status}">
               ${adminEscape(student.studentName)}
-
-              <span class="admin-student-id">
-                (${adminEscape(student.studentId)})
-              </span>
-
               <span class="admin-subcounts">
                 ${adminBookCountHtml(counts)}
               </span>
