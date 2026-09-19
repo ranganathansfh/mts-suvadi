@@ -134,6 +134,7 @@ function renderSummary(summary) {
     </div>
   `;
 }
+
 async function loadHome() {
   const welcome = document.getElementById("welcome");
   const studentList = document.getElementById("student-list");
@@ -169,8 +170,6 @@ async function loadHome() {
 
         <div class="student-row">
 
-          <span class="status-dot ${status}"></span>
-
           <span class="student-name-${status}">
             ${studentDisplayName(student)}
           </span>
@@ -196,7 +195,7 @@ function openStudentDetails(studentId) {
   spaNavigate("details", { student: studentId });
 }
 
- async function loadDetails() {
+async function loadDetails() {
   const params = new URLSearchParams(window.location.search);
   const studentId = params.get("student") || getSelectedStudent();
   const content = document.getElementById("details-content");
@@ -230,7 +229,13 @@ function openStudentDetails(studentId) {
   }
 
   const teacherText = student.teachers.join("<br>");
-  const parentText = student.parents.join("<br>&amp; ");
+
+  // Parent1 already contains the combined parent names from Access.
+  // Therefore display only the first parent value.
+  const parentText =
+    Array.isArray(student.parents) && student.parents.length
+      ? student.parents[0]
+      : "";
 
   content.innerHTML = `
     <div class="field">
@@ -420,9 +425,10 @@ function renderStatusSection(
                         type="button"
                         onclick="openBookDetails('${book.lendingId}')">
                   <div class="book-title">
-                    <span class="book-reading-icon">${book.bookRead ? "📖" : "📕"}</span>
+                    <span class="book-reading-icon">${book.bookRead ? "📖" : "📘"}</span>
                     ${book.bookTitle}
                   </div>
+
                   <div class="book-due">
                     ${
                       returnedMode
@@ -432,10 +438,14 @@ function renderStatusSection(
                             <span class="overdue-relative">
                               ${dueRelativeText(book.dateToReturn)}
                             </span>`
-                          : `Due On: ${formatDate(book.dateToReturn)}`
+                          : `Due On: ${formatDate(book.dateToReturn)} -
+                            <span class="due-relative">
+                              ${dueRelativeText(book.dateToReturn)}
+                            </span>`
                     }
                   </div>
                 </button>
+
                 ${actionHtml}
               </div>
             `;
@@ -482,7 +492,6 @@ function renderStatusSection(
   `;
 }
 
-
 function daysUntil(dateText) {
   const due = parseLocalDate(dateText);
   if (!due) return null;
@@ -524,39 +533,31 @@ async function loadStudentBooks() {
       window.location.search
     );
 
-
   const studentId =
     params.get("student") ||
     getSelectedStudent();
 
-
   const adminMode =
     params.get("mode") === "admin";
-
-
-  const groupsContainer =
+      const groupsContainer =
     document.getElementById(
       "student-book-groups"
     );
-
 
   const pageTitle =
     document.getElementById(
       "student-books-page-title"
     );
 
-
   const familyNav =
     document.getElementById(
       "student-books-family-nav"
     );
 
-
   const adminNav =
     document.getElementById(
       "student-books-admin-nav"
     );
-
 
 
   /*
@@ -573,9 +574,7 @@ async function loadStudentBooks() {
        </div>`;
 
     return;
-
   }
-
 
 
   /*
@@ -587,72 +586,36 @@ async function loadStudentBooks() {
   );
 
 
-
   /*
    * =========================================================
    * ADMIN MODE
    * =========================================================
-   *
-   * Admin:
-   *
-   * Header = Student Name
-   *
-   * Bottom:
-   * only MTS சுவடி
-   *
-   * =========================================================
    */
 
   if (adminMode) {
-
-    /*
-     * Get selected student.
-     */
 
     const student =
       await getStudentById(
         studentId
       );
 
+    if (
+      pageTitle &&
+      student
+    ) {
 
-    /*
-     * Put student name in header.
-     */
-
-if (
-  pageTitle &&
-  student
-) {
-
-  pageTitle.textContent =
-    `${studentDisplayName(student)} - ${student.grade}`;
-
-}
-
-
-    /*
-     * Hide normal two-button navigation.
-     */
+      pageTitle.textContent =
+        `${studentDisplayName(student)} - ${student.grade}`;
+    }
 
     if (familyNav) {
-
       familyNav.hidden = true;
-
     }
-
-
-    /*
-     * Show Admin single-button navigation.
-     */
 
     if (adminNav) {
-
       adminNav.hidden = false;
-
     }
-
   }
-
 
 
   /*
@@ -663,20 +626,27 @@ if (
 
   else {
 
-    /*
-     * Keep original header.
-     */
-
     if (pageTitle) {
-      const student = await getStudentById(studentId);
+
+      const student =
+        await getStudentById(studentId);
+
       if (student) {
-        const studentRows = await getLendingForStudent(studentId);
-        const hasOverdue = studentRows.some(book =>
-          !book.returned && calculateBookStatus(book) === "overdue"
-        );
-        const hasUpcoming = studentRows.some(book =>
-          !book.returned && calculateBookStatus(book) !== "overdue"
-        );
+
+        const studentRows =
+          await getLendingForStudent(studentId);
+
+        const hasOverdue =
+          studentRows.some(book =>
+            !book.returned &&
+            calculateBookStatus(book) === "overdue"
+          );
+
+        const hasUpcoming =
+          studentRows.some(book =>
+            !book.returned &&
+            calculateBookStatus(book) !== "overdue"
+          );
 
         pageTitle.textContent =
           `${studentDisplayName(student)} - ${student.grade}`;
@@ -694,35 +664,22 @@ if (
               ? "student-books-orange"
               : "student-books-green"
         );
+
       } else {
-        pageTitle.textContent = "My Books";
+
+        pageTitle.textContent =
+          "My Books";
       }
     }
 
-
-    /*
-     * Show original navigation.
-     */
-
     if (familyNav) {
-
       familyNav.hidden = false;
-
     }
-
-
-    /*
-     * Hide Admin navigation.
-     */
 
     if (adminNav) {
-
       adminNav.hidden = true;
-
     }
-
   }
-
 
 
   /*
@@ -735,7 +692,6 @@ if (
     await getLendingForStudent(
       studentId
     );
-
 
 
   /*
@@ -766,7 +722,6 @@ if (
       );
 
 
-
   /*
    * =========================================================
    * UPCOMING DUE BOOKS
@@ -795,7 +750,6 @@ if (
       );
 
 
-
   /*
    * =========================================================
    * RETURNED BOOKS
@@ -819,19 +773,15 @@ if (
               a.checkedOutDate
             );
 
-
           const bd =
             parseLocalDate(
               b.dateReturned ||
               b.checkedOutDate
             );
 
-
           return bd - ad;
-
         }
       );
-
 
 
   /*
@@ -843,233 +793,504 @@ if (
   groupsContainer.innerHTML =
 
     renderStatusSection(
-
       "overdue-books-content",
-
       "Overdue Books",
-
       "overdue-header",
-
       overdueBooks,
-
       "No overdue books."
-
     )
 
     +
 
     renderStatusSection(
-
       "upcoming-books-content",
-
       "Upcoming Due Books",
-
       "upcoming-header",
-
       upcomingBooks,
-
       "No upcoming due books."
-
     )
 
     +
 
     renderStatusSection(
-
       "returned-books-content",
-
       "Returned Books",
-
       "returned-header",
-
       returnedBooks,
-
       "No returned books.",
-
       true
-
     );
-
 }
 
+
 function openBookDetails(lendingId) {
-  const params = new URLSearchParams(window.location.search);
-  const extra = { lending: lendingId };
-  if (params.get("mode") === "admin") extra.mode = "admin";
-  spaNavigate("book-details", extra);
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const extra = {
+    lending: lendingId
+  };
+
+  if (
+    params.get("mode") === "admin"
+  ) {
+    extra.mode = "admin";
+  }
+
+  spaNavigate(
+    "book-details",
+    extra
+  );
 }
 
 
 function showSuvadiConfirm(options = {}) {
-  return new Promise(resolve => {
-    const modal = document.getElementById("suvadi-confirm-modal");
-    const icon = document.getElementById("suvadi-confirm-icon");
-    const title = document.getElementById("suvadi-confirm-title");
-    const message = document.getElementById("suvadi-confirm-message");
-    const yes = document.getElementById("suvadi-confirm-yes");
-    const no = document.getElementById("suvadi-confirm-no");
 
-    icon.textContent = options.icon || "📖";
-    title.textContent = options.title || "Confirm";
-    message.textContent = options.message || "Are you sure?";
-    yes.textContent = options.confirmText || "CONFIRM";
-    yes.className = "suvadi-confirm-button " + (options.confirmClass || "confirm-blue");
+  return new Promise(resolve => {
+
+    const modal =
+      document.getElementById(
+        "suvadi-confirm-modal"
+      );
+
+    const icon =
+      document.getElementById(
+        "suvadi-confirm-icon"
+      );
+
+    const title =
+      document.getElementById(
+        "suvadi-confirm-title"
+      );
+
+    const message =
+      document.getElementById(
+        "suvadi-confirm-message"
+      );
+
+    const yes =
+      document.getElementById(
+        "suvadi-confirm-yes"
+      );
+
+    const no =
+      document.getElementById(
+        "suvadi-confirm-no"
+      );
+
+    icon.textContent =
+      options.icon || "📖";
+
+    title.textContent =
+      options.title || "Confirm";
+
+    message.textContent =
+      options.message ||
+      "Are you sure?";
+
+    yes.textContent =
+      options.confirmText ||
+      "CONFIRM";
+
+    yes.className =
+      "suvadi-confirm-button " +
+      (
+        options.confirmClass ||
+        "confirm-blue"
+      );
+
     modal.hidden = false;
 
     const finish = value => {
+
       modal.hidden = true;
+
       yes.onclick = null;
       no.onclick = null;
+
       resolve(value);
     };
-    yes.onclick = () => finish(true);
-    no.onclick = () => finish(false);
+
+    yes.onclick =
+      () => finish(true);
+
+    no.onclick =
+      () => finish(false);
   });
 }
 
-async function toggleBookReadStatus(lendingId, markRead) {
-  const confirmed = await showSuvadiConfirm(
-    markRead
-      ? {
-          icon: "📘✅",
-          title: "Mark Book as Read?",
-          message: "I attest that the student has read this book.",
-          confirmText: "MARK READ",
-          confirmClass: "confirm-blue"
-        }
-      : {
-          icon: "📕↩️",
-          title: "Mark Book as Unread?",
-          message: "This will change the reading status back to Not Read.",
-          confirmText: "MARK UNREAD",
-          confirmClass: "confirm-red"
-        }
-  );
 
-  if (!confirmed) return false;
+async function toggleBookReadStatus(
+  lendingId,
+  markRead
+) {
+
+  const confirmed =
+    await showSuvadiConfirm(
+
+      markRead
+
+        ? {
+            icon: "📘✅",
+            title: "Mark Book as Read?",
+            message:
+              "I attest that the student has read this book.",
+            confirmText: "MARK READ",
+            confirmClass: "confirm-blue"
+          }
+
+        : {
+            icon: "📕↩️",
+            title: "Mark Book as Unread?",
+            message:
+              "This will change the reading status back to Not Read.",
+            confirmText: "MARK UNREAD",
+            confirmClass: "confirm-red"
+          }
+    );
+
+  if (!confirmed) {
+    return false;
+  }
 
   try {
-    await setBookReadStatus(lendingId, markRead);
+
+    await setBookReadStatus(
+      lendingId,
+      markRead
+    );
+
     await renderSpaRoute();
+
     return true;
+
   } catch (error) {
-    console.error("Book read-status update failed:", error);
-    alert(error.message || "Unable to update the book read status.");
+
+    console.error(
+      "Book read-status update failed:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Unable to update the book read status."
+    );
+
     return false;
   }
 }
 
+
 async function loadBookDetails() {
-  const params = new URLSearchParams(window.location.search);
-  const lendingId = params.get("lending");
-  const content = document.getElementById("details-content-book");
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const lendingId =
+    params.get("lending");
+
+  const content =
+    document.getElementById(
+      "details-content-book"
+    );
 
   if (!lendingId) {
-    content.innerHTML = `<div class="error-box">Lending ID was not supplied.</div>`;
+
+    content.innerHTML =
+      `<div class="error-box">
+         Lending ID was not supplied.
+       </div>`;
+
     return;
   }
 
-  const book = await getLendingById(lendingId);
+  const book =
+    await getLendingById(
+      lendingId
+    );
+
   if (!book) {
-    content.innerHTML = `<div class="error-box">Book transaction ${lendingId} was not found.</div>`;
+
+    content.innerHTML =
+      `<div class="error-box">
+         Book transaction ${lendingId}
+         was not found.
+       </div>`;
+
     return;
   }
 
-  const student = await getStudentById(book.studentId);
-  const studentStatusClass =   await getStudentBookStatusClass(book.studentId);
-  setSelectedStudent(book.studentId);
+  const student =
+    await getStudentById(
+      book.studentId
+    );
 
-  const status = calculateBookStatus(book);
+  const studentStatusClass =
+    await getStudentBookStatusClass(
+      book.studentId
+    );
+
+  setSelectedStudent(
+    book.studentId
+  );
+
+  const status =
+    calculateBookStatus(book);
+
   const statusText =
-    status === "overdue" ? "Overdue" :
-    status === "returned" ? "Returned" : "Pending";
+    status === "overdue"
+      ? "Overdue"
+      : status === "returned"
+        ? "Returned"
+        : "Pending";
 
   const statusClass =
-    status === "overdue" ? "overdue-dot" :
-    status === "returned" ? "returned-dot" :
-    "pending-dot";
+    status === "overdue"
+      ? "overdue-dot"
+      : status === "returned"
+        ? "returned-dot"
+        : "pending-dot";
 
   content.innerHTML = `
-    <div class="field">
-      <div class="field-value ${studentStatusClass}" style="font-weight:700;">
-        ${student ? studentDisplayName(student) : book.studentId}
-      </div>  
-      <div class="field-value" style="font-weight:700;">${student ? student.grade : ""}</div>
-    </div>
 
     <div class="field">
-      <div class="field-label">Book</div>
-      <div class="field-value" style="font-weight:700;">
+
+      <div
+        class="field-value ${studentStatusClass}"
+        style="font-weight:700;">
+
+        ${
+          student
+            ? studentDisplayName(student)
+            : book.studentId
+        }
+
+      </div>
+
+      <div
+        class="field-value"
+        style="font-weight:700;">
+
+        ${
+          student
+            ? student.grade
+            : ""
+        }
+
+      </div>
+
+    </div>
+
+
+    <div class="field">
+
+      <div class="field-label">
+        Book
+      </div>
+
+      <div
+        class="field-value"
+        style="font-weight:700;">
+
         ${book.bookTitle}
+
       </div>
+
     </div>
 
-    <div class="field">
-      <div class="field-label">Checked Out</div>
-      <div class="field-value">${formatDate(book.checkedOutDate)}</div>
-    </div>
 
     <div class="field">
-      <div class="field-label">Date to Return</div>
-      <div class="field-value">${formatDate(book.dateToReturn)}</div>
+
+      <div class="field-label">
+        Checked Out
+      </div>
+
+      <div class="field-value">
+        ${formatDate(book.checkedOutDate)}
+      </div>
+
     </div>
 
-    <div class="field">
-      <div class="field-label">Date Returned</div>
-      <div class="field-value">${book.returned ? formatDate(book.dateReturned) : "Not Returned"}</div>
-    </div>
 
     <div class="field">
-      <div class="field-label">Status</div>
-      <div class="field-value ${statusClass}" style="font-weight:700;">
+
+      <div class="field-label">
+        Date to Return
+      </div>
+
+      <div class="field-value">
+        ${formatDate(book.dateToReturn)}
+      </div>
+
+    </div>
+
+
+    <div class="field">
+
+      <div class="field-label">
+        Date Returned
+      </div>
+
+      <div class="field-value">
+
+        ${
+          book.returned
+            ? formatDate(book.dateReturned)
+            : "Not Returned"
+        }
+
+      </div>
+
+    </div>
+
+
+    <div class="field">
+
+      <div class="field-label">
+        Status
+      </div>
+
+      <div
+        class="field-value ${statusClass}"
+        style="font-weight:700;">
+
         ${statusText}
+
       </div>
+
     </div>
 
+
     <div class="field">
-      <div class="field-label">Book Read</div>
-      <div class="field-value ${book.bookRead ? "book-read-detail" : "book-not-read-detail"}"
-     style="font-weight:700;">
-  ${book.bookRead ? "Read" : "Not Read"}
-</div>
+
+      <div class="field-label">
+        Book Read
+      </div>
+
+      <div
+        class="field-value ${
+          book.bookRead
+            ? "book-read-detail"
+            : "book-not-read-detail"
+        }"
+        style="font-weight:700;">
+
+        ${
+          book.bookRead
+            ? "Read"
+            : "Not Read"
+        }
+
+      </div>
+
     </div>
   `;
 
-  // Family/student can toggle Read/Unread for an unreturned book.
-  const adminMode = new URLSearchParams(window.location.search).get("mode") === "admin";
-  if (!adminMode && !book.returned) {
-    const actionArea = document.createElement("div");
-    actionArea.className = "book-detail-action-area";
 
-    const readButton = document.createElement("button");
-    readButton.type = "button";
+  /*
+   * Family/student can toggle Read/Unread
+   * for an unreturned book.
+   */
+
+  const adminMode =
+    new URLSearchParams(
+      window.location.search
+    ).get("mode") === "admin";
+
+  if (
+    !adminMode &&
+    !book.returned
+  ) {
+
+    const actionArea =
+      document.createElement(
+        "div"
+      );
+
+    actionArea.className =
+      "book-detail-action-area";
+
+    const readButton =
+      document.createElement(
+        "button"
+      );
+
+    readButton.type =
+      "button";
+
     readButton.className =
-      "book-read-action " + (book.bookRead ? "mark-unread" : "mark-read");
-    readButton.textContent =
-      book.bookRead ? "MARK UNREAD" : "MARK READ";
-    readButton.onclick = async function () {
-      await toggleBookReadStatus(book.lendingId, !book.bookRead);
-    };
+      "book-read-action " +
+      (
+        book.bookRead
+          ? "mark-unread"
+          : "mark-read"
+      );
 
-    actionArea.appendChild(readButton);
-    content.appendChild(actionArea);
+    readButton.textContent =
+      book.bookRead
+        ? "MARK UNREAD"
+        : "MARK READ";
+
+    readButton.onclick =
+      async function () {
+
+        await toggleBookReadStatus(
+          book.lendingId,
+          !book.bookRead
+        );
+      };
+
+    actionArea.appendChild(
+      readButton
+    );
+
+    content.appendChild(
+      actionArea
+    );
   }
 }
 
-async function confirmMarkBookRead(lendingId) {
-  const confirmed = window.confirm(
-    "Confirm\n\nI Attest that the Kid read the book!!!"
-  );
 
-  if (!confirmed) return;
+async function confirmMarkBookRead(
+  lendingId
+) {
+
+  const confirmed =
+    window.confirm(
+      "Confirm\n\nI Attest that the Kid read the book!!!"
+    );
+
+  if (!confirmed) {
+    return;
+  }
 
   try {
-    await setBookReadStatus(lendingId, true);
+
+    await setBookReadStatus(
+      lendingId,
+      true
+    );
+
     await loadBookDetails();
+
   } catch (error) {
-    console.error("Mark Book Read failed:", error);
-    alert(error.message || "Unable to mark the book as read.");
+
+    console.error(
+      "Mark Book Read failed:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Unable to mark the book as read."
+    );
   }
 }
+
 
 registerServiceWorker();

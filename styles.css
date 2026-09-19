@@ -104,6 +104,12 @@ button, a { font: inherit; }
   line-height: 18px;
 }
 
+/*
+  Status dot is retained for screens that still use it,
+  such as Student Details.
+
+  The HOME student list no longer renders this dot.
+*/
 .status-dot {
   width: 14px;
   height: 14px;
@@ -115,6 +121,25 @@ button, a { font: inherit; }
 .green { background: var(--green); }
 .orange { background: var(--orange); }
 .red { background: var(--red); }
+
+/* =========================================================
+   HOME STUDENT NAME STATUS COLORS
+   ========================================================= */
+
+.student-name-red {
+  color: var(--red) !important;
+  font-weight: 700;
+}
+
+.student-name-orange {
+  color: var(--orange) !important;
+  font-weight: 700;
+}
+
+.student-name-green {
+  color: var(--green) !important;
+  font-weight: 700;
+}
 
 .stats {
   margin-top: 4px;
@@ -213,7 +238,11 @@ button, a { font: inherit; }
   font-size: 14px;
 }
 
-/* MY BOOKS - root screen */
+
+/* =========================================================
+   MY BOOKS - ROOT SCREEN
+   ========================================================= */
+
 .mybooks-list {
   background: #fff;
 }
@@ -242,6 +271,18 @@ button, a { font: inherit; }
   text-overflow: ellipsis;
 }
 
+.student-books-red {
+  color: var(--red) !important;
+}
+
+.student-books-orange {
+  color: var(--orange) !important;
+}
+
+.student-books-green {
+  color: var(--green) !important;
+}
+
 .count-badge {
   display: inline-flex;
   min-width: 20px;
@@ -263,7 +304,21 @@ button, a { font: inherit; }
   text-align: center;
 }
 
-/* MY BOOKS - selected student screen */
+
+/* =========================================================
+   MY BOOKS - SELECTED STUDENT
+   ========================================================= */
+
+/*
+  CHANGE:
+  Reduce the selected student's name / grade heading.
+*/
+#student-books-page-title {
+  font-size: 16px !important;
+  line-height: 1.25 !important;
+  font-weight: 700;
+}
+
 .book-date-group {
   background: #fff;
 }
@@ -320,6 +375,22 @@ button, a { font: inherit; }
   line-height: 16px;
 }
 
+/*
+  CHANGE:
+  Upcoming Due Books -> "Due in X days"
+  appears in brown/orange.
+*/
+.due-relative {
+  margin-left: 5px;
+  color: #8b5a2b !important;
+  font-weight: 700;
+}
+
+.overdue-relative {
+  color: #0879dc !important;
+  font-weight: 700;
+}
+
 .book-read-status {
   align-self: start;
   justify-self: end;
@@ -329,8 +400,13 @@ button, a { font: inherit; }
   padding-top: 2px;
 }
 
-.book-read-status.read { color: var(--green); }
-.book-read-status.not-read { color: var(--orange); }
+.book-read-status.read {
+  color: var(--green);
+}
+
+.book-read-status.not-read {
+  color: var(--orange);
+}
 
 .mybooks-empty {
   padding: 16px 12px;
@@ -344,12 +420,28 @@ button, a { font: inherit; }
 }
 
 @media (max-width: 380px) {
-  .page-title { font-size: 17px; }
-  .mybooks-student-name { font-size: 12px; }
-  .book-title { font-size: 13px; }
+  .page-title {
+    font-size: 17px;
+  }
+
+  .mybooks-student-name {
+    font-size: 12px;
+  }
+
+  .book-title {
+    font-size: 13px;
+  }
+
+  #student-books-page-title {
+    font-size: 15px !important;
+  }
 }
 
-/* Grouped student books */
+
+/* =========================================================
+   GROUPED STUDENT BOOKS
+   ========================================================= */
+
 .book-status-section {
   background: #fff;
   margin-top: 8px;
@@ -402,7 +494,12 @@ button, a { font: inherit; }
   color: #666;
   font-weight: 400;
 }
-/* Collapsible book-group headers */
+
+
+/* =========================================================
+   COLLAPSIBLE BOOK GROUP HEADERS
+   ========================================================= */
+
 .book-status-header {
   width: 100%;
   border: 0;
@@ -419,48 +516,33 @@ button, a { font: inherit; }
 }
 
 .group-chevron {
-  font-size: 22px;
-  line-height: 1;
-  transition: transform 0.18s ease;
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border-right: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-right: 5px;
+}
+
+.book-status-header[aria-expanded="true"] .group-chevron {
+  transform: rotate(225deg);
 }
 
 .book-status-header[aria-expanded="false"] .group-chevron {
-  transform: rotate(-90deg);
+  transform: rotate(45deg);
 }
 
 .book-status-content[hidden] {
   display: none;
 }
 
-.due-relative {
-  margin-left: 5px;
-  font-weight: 700;
-}
 
-/* Clean expand/collapse chevron */
-.group-chevron {
-  width: 10px;
-  height: 10px;
-  display: inline-block;
+/* =========================================================
+   ADMIN
+   ========================================================= */
 
-  border-right: 3px solid currentColor;
-  border-bottom: 3px solid currentColor;
-
-  transform: rotate(45deg);
-  transition: transform 0.2s ease;
-
-  margin-right: 5px;
-}
-
-/* Expanded = arrow pointing upward */
-.book-status-header[aria-expanded="true"] .group-chevron {
-  transform: rotate(225deg);
-}
-
-/* Collapsed = arrow pointing downward */
-.book-status-header[aria-expanded="false"] .group-chevron {
-  transform: rotate(45deg);
-}
 .admin-main {
   padding: 0 0 84px;
 }
@@ -524,18 +606,34 @@ button, a { font: inherit; }
   border-radius: 50%;
 }
 
-.admin-status-dot.red { background: var(--red, #dc3851); }
-.admin-status-dot.orange { background: var(--orange, #e67800); }
-.admin-status-dot.green { background: var(--green, #00a51a); }
+.admin-status-dot.red {
+  background: var(--red, #dc3851);
+}
+
+.admin-status-dot.orange {
+  background: var(--orange, #e67800);
+}
+
+.admin-status-dot.green {
+  background: var(--green, #00a51a);
+}
 
 .admin-student-name {
   flex: 1;
   font-weight: 700;
 }
 
-.admin-student-name.red { color: var(--red, #dc3851); }
-.admin-student-name.orange { color: var(--orange, #e67800); }
-.admin-student-name.green { color: var(--green, #00a51a); }
+.admin-student-name.red {
+  color: var(--red, #dc3851);
+}
+
+.admin-student-name.orange {
+  color: var(--orange, #e67800);
+}
+
+.admin-student-name.green {
+  color: var(--green, #00a51a);
+}
 
 .admin-student-id {
   font-weight: 500;
@@ -559,12 +657,62 @@ button, a { font: inherit; }
   cursor: pointer;
 }
 
-[hidden]{display:none!important}
-.spa-screen{min-height:calc(100dvh - 112px)}
-.suvadi-startup-screen{position:fixed;inset:0;width:100%;height:100dvh;overflow:hidden;background:#0879dc;z-index:1000}
-.suvadi-startup-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
-.suvadi-login-controls{position:absolute;left:50%;bottom:max(32px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(88%,360px);z-index:2;text-align:center}
-.suvadi-google-signin{width:100%;min-height:48px;padding:11px 20px;border:2px solid #fff;border-radius:24px;background:rgba(255,255,255,.96);color:#1254a3;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+[hidden] {
+  display: none !important;
+}
+
+.spa-screen {
+  min-height: calc(100dvh - 112px);
+}
+
+
+/* =========================================================
+   STARTUP / LOGIN
+   ========================================================= */
+
+.suvadi-startup-screen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #0879dc;
+  z-index: 1000;
+}
+
+.suvadi-startup-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.suvadi-login-controls {
+  position: absolute;
+  left: 50%;
+  bottom: max(32px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(88%, 360px);
+  z-index: 2;
+  text-align: center;
+}
+
+.suvadi-google-signin {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 20px;
+  border: 2px solid #fff;
+  border-radius: 24px;
+  background: rgba(255,255,255,.96);
+  color: #1254a3;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+}
 .suvadi-login-status{min-height:18px;margin-top:9px;color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.35)}
 .suvadi-menu{position:fixed;z-index:1100;top:58px;left:10px;background:#fff;min-width:210px;padding:8px;border-radius:10px;box-shadow:0 3px 18px #0003}
 .suvadi-menu-item{display:block;width:100%;border:0;background:#fff;text-align:left;padding:12px;font-size:15px;cursor:pointer}
@@ -621,11 +769,10 @@ button, a { font: inherit; }
   color: var(--green) !important;
 }
 
-/* Admin count markup places the number as a text node after each dot.
-   Color each dot+number pair explicitly through dedicated wrapper styling. */
 .admin-book-counts {
   color: var(--text);
 }
+
 .admin-book-counts .overdue-dot { color: var(--red) !important; }
 .admin-book-counts .pending-dot { color: var(--orange) !important; }
 .admin-book-counts .returned-dot { color: var(--green) !important; }
@@ -634,7 +781,6 @@ button, a { font: inherit; }
 .admin-status-count.pending-count { color: var(--orange) !important; }
 .admin-status-count.returned-count { color: var(--green) !important; }
 
-/* Semantic count/status colors from existing app markup. */
 .book-read-status { color: var(--green) !important; }
 .overdue-dot { color: var(--red) !important; }
 .pending-dot { color: var(--orange) !important; }
@@ -655,6 +801,7 @@ button, a { font: inherit; }
   align-items: center;
   gap: 12px;
 }
+
 .book-main-button {
   flex: 1 1 auto;
   min-width: 0;
@@ -665,6 +812,7 @@ button, a { font: inherit; }
   cursor: pointer;
   color: inherit;
 }
+
 .book-read-action {
   flex: 0 0 auto;
   border: 0;
@@ -678,25 +826,31 @@ button, a { font: inherit; }
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,.14);
 }
+
 .book-read-action.mark-read {
   background: #0879dc;
 }
+
 .book-read-action.mark-unread {
   background: #dc3851;
 }
+
 .book-read-action:active {
   transform: scale(.97);
 }
+
 .book-detail-action-area {
   margin-top: 24px;
   margin-bottom: 90px;
   text-align: center;
 }
+
 .book-detail-action-area .book-read-action {
   min-width: 150px;
   padding: 12px 18px;
   font-size: 13px;
 }
+
 @media (max-width: 600px) {
   .book-read-action {
     min-width: 92px;
@@ -721,59 +875,144 @@ button, a { font: inherit; }
 
 /* SPA v7 - top-right actions, tooltips, active bottom tabs, loading overlay */
 .topbar-left-spacer { width: 40px; flex: 0 0 40px; }
-.topbar-actions { display:flex; align-items:center; gap:8px; margin-left:auto; padding-right:6px; }
+
+.topbar-actions {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+  padding-right:6px;
+}
+
 .top-action-button {
-  position:relative; width:38px; height:38px; border:0; border-radius:50%;
-  display:inline-flex; align-items:center; justify-content:center;
-  font-size:22px; font-weight:800; cursor:pointer;
+  position:relative;
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:800;
+  cursor:pointer;
   box-shadow:0 2px 7px rgba(0,0,0,.13);
   transition:transform .12s ease, box-shadow .12s ease;
 }
-.top-action-button:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.18); }
-.top-action-button:active { transform:scale(.95); }
+
+.top-action-button:hover {
+  transform:translateY(-1px);
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+}
+
+.top-action-button:active {
+  transform:scale(.95);
+}
+
 .refresh-action { background:#e8f2ff; color:#0879dc; }
 .install-action { background:#eaf8ee; color:#16883b; }
 .signout-action { background:#fdecec; color:#c62828; }
+
 .top-action-button::after {
-  content:attr(data-tooltip); position:absolute; top:46px; right:0;
-  white-space:nowrap; background:#202124; color:#fff; font-size:11px;
-  font-weight:600; padding:6px 8px; border-radius:6px; opacity:0;
-  pointer-events:none; transform:translateY(-3px); transition:.15s; z-index:3000;
+  content:attr(data-tooltip);
+  position:absolute;
+  top:46px;
+  right:0;
+  white-space:nowrap;
+  background:#202124;
+  color:#fff;
+  font-size:11px;
+  font-weight:600;
+  padding:6px 8px;
+  border-radius:6px;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(-3px);
+  transition:.15s;
+  z-index:3000;
 }
+
 .top-action-button:hover::after,
-.top-action-button:focus-visible::after { opacity:1; transform:translateY(0); }
+.top-action-button:focus-visible::after {
+  opacity:1;
+  transform:translateY(0);
+}
 
 .bottom-nav .nav-item.active {
   color:#0879dc !important;
   font-weight:800;
 }
+
 .bottom-nav .nav-item.active .nav-icon {
   transform:scale(1.08);
 }
+
 .bottom-nav .nav-item.active::before {
-  content:""; position:absolute; top:0; left:24%; right:24%;
-  height:3px; border-radius:0 0 4px 4px; background:#0879dc;
+  content:"";
+  position:absolute;
+  top:0;
+  left:24%;
+  right:24%;
+  height:3px;
+  border-radius:0 0 4px 4px;
+  background:#0879dc;
 }
-.bottom-nav .nav-item { position:relative; }
+
+.bottom-nav .nav-item {
+  position:relative;
+}
 
 .suvadi-data-loading {
-  position:fixed; inset:0; z-index:4800; display:flex; align-items:center;
-  justify-content:center; background:rgba(255,255,255,.56);
-  backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+  position:fixed;
+  inset:0;
+  z-index:4800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.56);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
 }
-.suvadi-data-loading[hidden] { display:none!important; }
+
+.suvadi-data-loading[hidden] {
+  display:none!important;
+}
+
 .suvadi-data-loading-card {
-  min-width:210px; max-width:82vw; padding:24px 26px; background:#fff;
-  border-radius:20px; text-align:center; box-shadow:0 16px 45px rgba(0,0,0,.20);
+  min-width:210px;
+  max-width:82vw;
+  padding:24px 26px;
+  background:#fff;
+  border-radius:20px;
+  text-align:center;
+  box-shadow:0 16px 45px rgba(0,0,0,.20);
 }
+
 .suvadi-spinner {
-  width:44px; height:44px; margin:0 auto 13px; border-radius:50%;
-  border:5px solid #dcecff; border-top-color:#0879dc;
+  width:44px;
+  height:44px;
+  margin:0 auto 13px;
+  border-radius:50%;
+  border:5px solid #dcecff;
+  border-top-color:#0879dc;
   animation:suvadi-spin .75s linear infinite;
 }
-@keyframes suvadi-spin { to { transform:rotate(360deg); } }
-.suvadi-loading-title { font-size:17px; font-weight:800; color:#202124; }
-.suvadi-loading-message { margin-top:5px; font-size:12px; color:#6b7280; }
+
+@keyframes suvadi-spin {
+  to { transform:rotate(360deg); }
+}
+
+.suvadi-loading-title {
+  font-size:17px;
+  font-weight:800;
+  color:#202124;
+}
+
+.suvadi-loading-message {
+  margin-top:5px;
+  font-size:12px;
+  color:#6b7280;
+}
 
 @media (max-width:600px) {
   .topbar-actions { gap:5px; }
@@ -790,6 +1029,7 @@ button, a { font: inherit; }
   margin-left:auto;
   padding-right:8px;
 }
+
 .top-action-button {
   width:auto !important;
   height:36px !important;
@@ -808,44 +1048,52 @@ button, a { font: inherit; }
   font-weight:700 !important;
   line-height:1;
 }
+
 .top-action-button:hover {
   background:#f7f9fc !important;
   border-color:#b9c8da !important;
   transform:none !important;
   box-shadow:0 2px 5px rgba(16,24,40,.10) !important;
 }
+
 .top-action-button:active {
   background:#eef4fb !important;
   transform:scale(.98) !important;
 }
+
 .top-action-icon {
   font-size:18px;
   line-height:1;
   font-weight:800;
 }
+
 .refresh-action .top-action-icon { color:#0879dc; }
 .install-action .top-action-icon { color:#16883b; }
 .signout-action .top-action-icon { color:#c62828; }
 .signout-action .top-action-text { color:#a61b1b; }
 
-/* Text makes the action clear, so tooltip is no longer visually necessary. */
-.top-action-button::after { display:none !important; }
+.top-action-button::after {
+  display:none !important;
+}
 
-/* Stronger selected bottom tab: white nav with blue indicator + blue icon/text. */
+/* Stronger selected bottom tab */
 .bottom-nav {
   background:#fff !important;
 }
+
 .bottom-nav .nav-item {
   background:#fff !important;
   color:#667085 !important;
   font-weight:600 !important;
   transition:background .15s ease,color .15s ease;
 }
+
 .bottom-nav .nav-item.active {
   background:#edf6ff !important;
   color:#0879dc !important;
   font-weight:800 !important;
 }
+
 .bottom-nav .nav-item.active::before {
   content:"";
   position:absolute;
@@ -856,17 +1104,23 @@ button, a { font: inherit; }
   border-radius:0 0 5px 5px;
   background:#0879dc;
 }
+
 .bottom-nav .nav-item.active .nav-icon,
 .bottom-nav .nav-item.active .nav-label {
   color:#0879dc !important;
 }
+
 .bottom-nav .nav-item:not(.active) .nav-icon,
 .bottom-nav .nav-item:not(.active) .nav-label {
   color:#667085 !important;
 }
 
 @media (max-width:600px) {
-  .topbar-actions { gap:4px; padding-right:4px; }
+  .topbar-actions {
+    gap:4px;
+    padding-right:4px;
+  }
+
   .top-action-button {
     height:34px !important;
     padding:0 8px !important;
@@ -874,15 +1128,26 @@ button, a { font: inherit; }
     gap:4px;
     font-size:11px !important;
   }
-  .top-action-icon { font-size:16px; }
+
+  .top-action-icon {
+    font-size:16px;
+  }
 }
+
 @media (max-width:390px) {
-  .top-action-button { padding:0 6px !important; }
-  .top-action-text { font-size:10px; }
+  .top-action-button {
+    padding:0 6px !important;
+  }
+
+  .top-action-text {
+    font-size:10px;
+  }
 }
 
 /* SPA v10 - Home Screen action */
-#suvadi-shortcut-button[hidden] { display:none !important; }
+#suvadi-shortcut-button[hidden] {
+  display:none !important;
+}
 
 /* SPA v11 - mobile top bar/title alignment */
 .topbar-left-spacer {
@@ -934,11 +1199,21 @@ button, a { font: inherit; }
   }
 }
 
-/* Very narrow phones: keep Refresh and Sign out compact so title remains readable. */
+/* Very narrow phones */
 @media (max-width:390px) {
-  #spa-page-title { font-size:17px !important; }
-  .top-action-button { padding:0 5px !important; font-size:9.5px !important; }
-  .topbar-actions { gap:2px !important; margin-left:4px !important; }
+  #spa-page-title {
+    font-size:17px !important;
+  }
+
+  .top-action-button {
+    padding:0 5px !important;
+    font-size:9.5px !important;
+  }
+
+  .topbar-actions {
+    gap:2px !important;
+    margin-left:4px !important;
+  }
 }
 
 #spa-page-title,
@@ -1050,7 +1325,6 @@ button, a { font: inherit; }
   vertical-align: -2px;
 }
 
-
 /* Force correct colors for student summary dots */
 .stats .overdue-dot {
   color: var(--red) !important;
@@ -1090,6 +1364,7 @@ button, a { font: inherit; }
     max-width: 205px;
   }
 }
+
 /* Summary book icon */
 .summary-line .summary-icon {
   min-width: 22px;
@@ -1123,6 +1398,7 @@ button, a { font: inherit; }
   align-items: center;
   gap: 28px;
 }
+
 /* Total Books + Books Read on same line */
 .summary-books-row {
   display: flex;
@@ -1154,6 +1430,7 @@ button, a { font: inherit; }
   min-width: 22px;
   text-align: center;
 }
+
 /* Summary count colors */
 .returned-count {
   color: var(--green) !important;
@@ -1169,6 +1446,7 @@ button, a { font: inherit; }
   color: var(--red) !important;
   font-weight: 600;
 }
+
 /* Admin Read / Not Read display */
 .book-read-status.read {
   color: #008000 !important;
@@ -1191,7 +1469,6 @@ button, a { font: inherit; }
   color: #0879dc !important;
   font-weight: 700;
 }
-
 
 .book-read-detail {
   color: #008000 !important;
@@ -1267,7 +1544,6 @@ button, a { font: inherit; }
   font-size: 20px;
 }
 
-
 /* No readers yet */
 
 .readers-empty {
@@ -1301,6 +1577,7 @@ button, a { font: inherit; }
   font-size: 14px;
   font-weight: 600;
 }
+
 /* =========================================================
    ADMIN - STUDENT BOOKS READ
    ========================================================= */
@@ -1318,7 +1595,6 @@ button, a { font: inherit; }
   margin-right: 4px;
   font-size: 16px;
 }
-
 
 /* Individual book */
 
@@ -1338,7 +1614,6 @@ button, a { font: inherit; }
   gap: 12px;
 }
 
-
 /* Book name */
 
 .reader-book-title {
@@ -1356,7 +1631,6 @@ button, a { font: inherit; }
   margin-right: 4px;
 }
 
-
 /* Current status colors */
 
 .reader-book-overdue {
@@ -1371,7 +1645,6 @@ button, a { font: inherit; }
   color: #008a3b;
 }
 
-
 /* Read date */
 
 .reader-book-date {
@@ -1384,7 +1657,6 @@ button, a { font: inherit; }
 
   white-space: nowrap;
 }
-
 
 /* Mobile */
 
@@ -1426,6 +1698,7 @@ button, a { font: inherit; }
   font-weight: 700;
   line-height: 1.25;
 }
+
 /* Compact Readers List student header */
 
 #screen-admin-reader-books .spa-admin-header {
@@ -1452,3 +1725,87 @@ button, a { font: inherit; }
   padding-left: 10px !important;
 }
 
+
+/* ==========================================================
+   REQUESTED UI CHANGES
+   ========================================================== */
+
+/* 1. Student status is shown by student-name color */
+.student-name-red {
+  color: var(--red) !important;
+  font-weight: 700;
+}
+
+.student-name-orange {
+  color: var(--orange) !important;
+  font-weight: 700;
+}
+
+.student-name-green {
+  color: var(--green) !important;
+  font-weight: 700;
+}
+
+
+/* 2. Upcoming Due Books: Due in X days */
+.due-relative {
+  margin-left: 5px;
+  color: #8b5a2b !important;
+  font-weight: 700;
+}
+
+
+/* 3. Smaller student heading on My Books screen */
+#student-books-page-title {
+  font-size: 16px !important;
+  line-height: 1.25 !important;
+}
+
+/* ==========================================================
+   MORE PROMINENT REFRESH + SIGN OUT BUTTONS
+   ========================================================== */
+
+/* Refresh */
+.refresh-action {
+  background: #e8f2ff !important;
+  border: 1.5px solid #0879dc !important;
+  color: #0879dc !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 5px rgba(8, 121, 220, 0.18) !important;
+}
+
+.refresh-action .top-action-icon,
+.refresh-action .top-action-text {
+  color: #0879dc !important;
+}
+
+/* Sign Out */
+.signout-action {
+  background: #fff0f0 !important;
+  border: 1.5px solid #dc3851 !important;
+  color: #c62828 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 5px rgba(220, 56, 81, 0.18) !important;
+}
+
+.signout-action .top-action-icon,
+.signout-action .top-action-text {
+  color: #c62828 !important;
+}
+
+/* Slightly stronger hover */
+.refresh-action:hover {
+  background: #d9ebff !important;
+}
+
+.signout-action:hover {
+  background: #ffe1e4 !important;
+}
+
+#student-books-page-title,
+#student-books-page-title *,
+#screen-student-books .spa-admin-title,
+#screen-student-books .spa-admin-title * {
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+}
