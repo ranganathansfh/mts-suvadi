@@ -18,6 +18,22 @@
   </div>
 </section>
 
+<!-- Unauthorized account -->
+<section id="suvadi-access-denied" class="suvadi-access-denied" hidden>
+  <img src="icons/suvadi-loading.png" alt="MTS சுவடி" class="suvadi-access-denied-background">
+  <div class="suvadi-access-denied-overlay">
+    <div class="suvadi-access-denied-card" role="alertdialog" aria-modal="true" aria-labelledby="suvadi-access-denied-title">
+      <div class="suvadi-access-denied-icon">⚠️</div>
+      <div id="suvadi-access-denied-title" class="suvadi-access-denied-title">Account Not Registered</div>
+      <div class="suvadi-access-denied-message">
+        The Google account <strong id="suvadi-denied-email"></strong> is not registered to access MTS சுவடி.
+      </div>
+      <div class="suvadi-access-denied-help">Please sign in using your child's MTS Tamil School email account.</div>
+      <button class="suvadi-access-denied-button" type="button" onclick="retrySuvadiSignIn()">Sign in with another account</button>
+    </div>
+  </div>
+</section>
+
 <div id="suvadi-app-panel" hidden>
 
 <header class="topbar">
@@ -130,6 +146,23 @@
   </main>
 
 </section>
+
+<section id="screen-admin-usage" class="spa-screen" hidden>
+  <div class="spa-admin-header">
+    <div class="spa-admin-title">App Usage</div>
+    <div id="admin-usage-school" class="spa-admin-school"></div>
+  </div>
+  <main id="admin-usage-content"></main>
+</section>
+
+<section id="screen-admin-activity" class="spa-screen" hidden>
+  <div class="spa-admin-header">
+    <div class="spa-admin-title">Library Activity</div>
+    <div id="admin-activity-school" class="spa-admin-school"></div>
+  </div>
+  <main id="admin-activity-content"></main>
+</section>
+
 <nav id="family-bottom-nav" class="bottom-nav" hidden>
   <a id="family-nav-back" class="nav-item spa-bottom-back" href="#"
      onclick="event.preventDefault();goBack()" hidden>
@@ -165,7 +198,19 @@
   <a id="admin-nav-readers" class="nav-item" href="?view=admin-readers"
      onclick="event.preventDefault();spaNavigate('admin-readers')">
     <span class="nav-icon">📖</span>
-    <span class="nav-label">Readers List</span>
+    <span class="nav-label">Readers</span>
+  </a>
+
+  <a id="admin-nav-usage" class="nav-item" href="?view=admin-usage"
+     onclick="event.preventDefault();spaNavigate('admin-usage')">
+    <span class="nav-icon">👥</span>
+    <span class="nav-label">App Usage</span>
+  </a>
+
+  <a id="admin-nav-activity" class="nav-item" href="?view=admin-activity"
+     onclick="event.preventDefault();spaNavigate('admin-activity')">
+    <span class="nav-icon">📚</span>
+    <span class="nav-label">Activity</span>
   </a>
 </nav>
 

@@ -794,10 +794,14 @@ async function loadSuvadiData(
 
   if (!accessDoc.exists) {
 
-    throw new Error(
+    const error = new Error(
       "This school account is not registered for MTS Suvadi."
     );
 
+    error.code = "SUVADI_ACCESS_DENIED";
+    error.loginEmail = loginEmail;
+
+    throw error;
   }
 
 
@@ -890,7 +894,143 @@ async function loadSuvadiData(
 
   buildSuvadiOptimizedCache();
 
-  return suvadiDataCache;
+try {
+
+  await recordFamilyLoginAudit(
+    suvadiDataCache
+  );
+
+}
+catch (auditError) {
+
+  console.error(
+    "MTS Suvadi login audit failed:",
+    auditError
+  );
+
+}
+
+return suvadiDataCache;
+}
+
+
+/*
+ * ============================================================
+ * FAMILY LOGIN AUDIT
+ * ============================================================
+ * One audit document represents one family. A successful family
+ * login therefore counts every student returned for that parent.
+ */
+async function recordFamilyLoginAudit(data) {
+
+  if (
+    !data ||
+    data.mode !== "family" ||
+    !data.parentEmail
+  ) {
+    return;
+  }
+
+
+  /*
+   * Record only once during this browser session.
+   */
+
+  const sessionKey =
+    "suvadiAuditLogged:" +
+    normalizeEmail(data.parentEmail);
+
+  if (
+    sessionStorage.getItem(sessionKey) === "1"
+  ) {
+    return;
+  }
+
+
+  /*
+   * All students belonging to this family.
+   */
+
+  const students =
+    (data.students || [])
+      .map(normalizeStudent);
+
+  const studentIds =
+    students
+      .map(student =>
+        String(student.studentId)
+      )
+      .filter(Boolean);
+
+  const studentNames =
+    students
+      .map(student =>
+        student.studentName
+      )
+      .filter(Boolean);
+
+  const school =
+    students[0]?.school || "";
+
+
+  /*
+   * One document per family.
+   *
+   * encodeURIComponent makes the ParentEmail safe
+   * to use as the Firestore document ID.
+   */
+
+  const docId =
+    encodeURIComponent(
+      normalizeEmail(data.parentEmail)
+    );
+
+  const ref =
+    suvadiDb
+      .collection("familyLoginAudit")
+      .doc(docId);
+
+
+  /*
+   * IMPORTANT:
+   *
+   * No transaction and no GET.
+   *
+   * This allows the very first family login to create
+   * the document without trying to read a document
+   * which does not exist yet.
+   */
+
+  await ref.set(
+    {
+      parentEmail:
+        normalizeEmail(data.parentEmail),
+
+      lastLogin:
+        firebase.firestore.FieldValue.serverTimestamp(),
+
+      lastLoginEmail:
+        normalizeEmail(data.loginEmail),
+
+      loginCount:
+        firebase.firestore.FieldValue.increment(1),
+
+      school,
+
+      studentIds,
+
+      studentNames
+    },
+    {
+      merge: true
+    }
+  );
+
+
+  sessionStorage.setItem(
+    sessionKey,
+    "1"
+  );
 }
 
 
@@ -1414,6 +1554,9 @@ async function signInSuvadi() {
 
   clearSuvadiDataCache();
 
+  Object.keys(sessionStorage)
+    .filter(key => key.startsWith("suvadiAuditLogged:"))
+    .forEach(key => sessionStorage.removeItem(key));
 
   return result.user;
 }

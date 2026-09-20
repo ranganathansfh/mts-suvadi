@@ -124,33 +124,20 @@ function updateBottomNavSelection(view) {
    * =========================================================
    */
 
-  const adminHome =
-    document.getElementById("admin-nav-home");
+  const adminHome = document.getElementById("admin-nav-home");
+  const adminReaders = document.getElementById("admin-nav-readers");
+  const adminUsage = document.getElementById("admin-nav-usage");
+  const adminActivity = document.getElementById("admin-nav-activity");
 
-  const adminReaders =
-    document.getElementById("admin-nav-readers");
+  if (adminHome && adminReaders && adminUsage && adminActivity) {
+    [adminHome, adminReaders, adminUsage, adminActivity]
+      .forEach(el => el.classList.remove("active"));
 
-
-  if (adminHome && adminReaders) {
-
-    adminHome.classList.remove("active");
-    adminReaders.classList.remove("active");
-
-
-const readersViews = [
-  "admin-readers",
-  "admin-reader-books"
-];
-
-if (readersViews.includes(view)) {
-
-  adminReaders.classList.add("active");
-
-} else {
-
-  adminHome.classList.add("active");
-
-}
+    const readersViews = ["admin-readers", "admin-reader-books"];
+    if (readersViews.includes(view)) adminReaders.classList.add("active");
+    else if (view === "admin-usage") adminUsage.classList.add("active");
+    else if (view === "admin-activity") adminActivity.classList.add("active");
+    else adminHome.classList.add("active");
   }
 }
 
@@ -461,6 +448,16 @@ else if (view === "admin-reader-books") {
 
 }
 
+    else if (view === "admin-usage" && data.mode === "admin") {
+      showSpaScreen("screen-admin-usage");
+      await loadAdminUsage();
+    }
+
+    else if (view === "admin-activity" && data.mode === "admin") {
+      showSpaScreen("screen-admin-activity");
+      await loadAdminActivity();
+    }
+
     /*
      * =========================================================
      * UNKNOWN VIEW
@@ -493,11 +490,13 @@ else if (view === "admin-reader-books") {
 
     console.error(e);
 
-    document
-      .getElementById("google-signin-status")
-      .textContent =
-        e.message ||
-        "Unable to load MTS Suvadi.";
+    if (e.code === "SUVADI_ACCESS_DENIED") {
+      await showSuvadiAccessDenied(e.loginEmail);
+      return;
+    }
+
+    const status = document.getElementById("google-signin-status");
+    if (status) status.textContent = e.message || "Unable to load MTS Suvadi.";
 
     login.hidden = false;
     shell.hidden = true;
@@ -516,6 +515,30 @@ else if (view === "admin-reader-books") {
     hideDataLoading();
 
   }
+}
+
+
+async function showSuvadiAccessDenied(email) {
+  const login = document.getElementById("suvadi-login-panel");
+  const shell = document.getElementById("suvadi-app-panel");
+  const denied = document.getElementById("suvadi-access-denied");
+  const emailElement = document.getElementById("suvadi-denied-email");
+  if (login) login.hidden = true;
+  if (shell) shell.hidden = true;
+  if (emailElement) emailElement.textContent = email || "";
+  if (denied) denied.hidden = false;
+  await suvadiAuth.signOut();
+  clearSuvadiDataCache();
+}
+
+async function retrySuvadiSignIn() {
+  const denied = document.getElementById("suvadi-access-denied");
+  const login = document.getElementById("suvadi-login-panel");
+  const status = document.getElementById("google-signin-status");
+  if (denied) denied.hidden = true;
+  if (login) login.hidden = false;
+  if (status) status.textContent = "";
+  await handleFirebaseSignIn();
 }
 
 

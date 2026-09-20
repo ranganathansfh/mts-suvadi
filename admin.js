@@ -285,9 +285,7 @@ async function loadAdminStudents() {
             type="button"
             onclick='openAdminStudent(${JSON.stringify(student.studentId)})'>
 
-            <span class="admin-status-dot suvadi-status-${status}"></span>
-
-            <span class="admin-student-name suvadi-status-${status}">
+             <span class="admin-student-name suvadi-status-${status}">
               ${adminEscape(student.studentName)}
               <span class="admin-subcounts">
                 ${adminBookCountHtml(counts)}
@@ -816,4 +814,773 @@ async function loadAdminReaderBooks() {
 }
 async function adminSignOut() {
   await signOutSuvadi();
+}
+
+
+function toggleAdminGradeGroup(groupId) {
+
+  const body =
+    document.getElementById(groupId);
+
+  const arrow =
+    document.getElementById(groupId + "-arrow");
+
+  if (!body) return;
+
+  if (body.hidden) {
+
+    // Currently collapsed -> expand
+    body.hidden = false;
+
+    if (arrow) {
+      arrow.textContent = "▼";
+    }
+
+  } else {
+
+    // Currently expanded -> collapse
+    body.hidden = true;
+
+    if (arrow) {
+      arrow.textContent = "▶";
+    }
+
+  }
+}
+
+/* ============================================================
+ * ADMIN - APP USAGE AUDIT
+ * ============================================================ */
+async function loadAdminUsage() {
+
+  const content =
+    document.getElementById("admin-usage-content");
+
+  const schoolLabel =
+    document.getElementById("admin-usage-school");
+
+  if (!content || !schoolLabel) return;
+
+  try {
+
+    const data = await requireAdminData();
+    if (!data) return;
+
+    schoolLabel.textContent =
+      `${data.admin.school} Admin`;
+
+    const students =
+      data.students.map(normalizeStudent);
+
+    /*
+     * Get login audit records for this school.
+     */
+    const snap =
+      await suvadiDb
+        .collection("familyLoginAudit")
+        .where("school", "==", data.admin.school)
+        .get();
+
+    const audits =
+      snap.docs.map(
+        d => d.data() || {}
+      );
+
+
+    /*
+     * Determine which students/families have used MTS Suvadi.
+     */
+    const usedStudentIds =
+      new Set();
+
+    audits.forEach(a => {
+
+      (a.studentIds || []).forEach(id => {
+
+        usedStudentIds.add(
+          String(id)
+        );
+
+      });
+
+    });
+
+
+    const usedStudents =
+      students.filter(
+        s =>
+          usedStudentIds.has(
+            String(s.studentId)
+          )
+      );
+
+
+    const neverStudents =
+      students.filter(
+        s =>
+          !usedStudentIds.has(
+            String(s.studentId)
+          )
+      );
+
+
+    const familyKeys =
+      new Set(
+        students
+          .map(
+            s => normalizeEmail(
+              s.parentEmail
+            )
+          )
+          .filter(Boolean)
+      );
+
+
+    const usedFamilyKeys =
+      new Set(
+        audits
+          .map(
+            a => normalizeEmail(
+              a.parentEmail
+            )
+          )
+          .filter(Boolean)
+      );
+
+
+    /*
+     * Map audit record to each student in that family.
+     */
+    const auditByStudent =
+      new Map();
+
+    audits.forEach(a => {
+
+      (a.studentIds || []).forEach(id => {
+
+        auditByStudent.set(
+          String(id),
+          a
+        );
+
+      });
+
+    });
+
+
+    /*
+     * Format login date.
+     */
+    const formatTimestamp = value => {
+
+      if (!value) return "";
+
+      const d =
+        typeof value.toDate === "function"
+          ? value.toDate()
+          : new Date(value);
+
+      if (
+        Number.isNaN(
+          d.getTime()
+        )
+      ) {
+        return "";
+      }
+
+      return new Intl.DateTimeFormat(
+        "en-US",
+        {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        }
+      ).format(d);
+
+    };
+
+
+    /*
+     * ==========================================================
+     * GROUP STUDENTS BY GRADE
+     * ==========================================================
+     */
+
+    const gradeMap =
+      new Map();
+
+
+    students.forEach(student => {
+
+      const grade =
+        student.grade ||
+        "No Grade";
+
+      if (
+        !gradeMap.has(grade)
+      ) {
+
+        gradeMap.set(
+          grade,
+          []
+        );
+
+      }
+
+      gradeMap
+        .get(grade)
+        .push(student);
+
+    });
+
+
+    /*
+     * Sort grades using the same grade sorting
+     * already used elsewhere in the Admin screen.
+     */
+
+    const grades =
+      [...gradeMap.keys()]
+        .sort(adminGradeSort);
+
+
+    /*
+     * Build grouped Student Usage HTML.
+     */
+
+    const groupedRows =
+      grades.map(grade => {
+
+        const gradeStudents =
+          gradeMap.get(grade);
+
+
+        /*
+         * Within each grade:
+         *
+         * NEVER USED first,
+         * then USED,
+         * then alphabetical by student name.
+         */
+
+        gradeStudents.sort(
+          (a, b) => {
+
+            const aUsed =
+              usedStudentIds.has(
+                String(a.studentId)
+              );
+
+            const bUsed =
+              usedStudentIds.has(
+                String(b.studentId)
+              );
+
+
+            if (aUsed !== bUsed) {
+
+              return aUsed
+                ? 1
+                : -1;
+
+            }
+
+
+            return (
+              a.studentName || ""
+            ).localeCompare(
+              b.studentName || "",
+              undefined,
+              {
+                sensitivity: "base"
+              }
+            );
+
+          }
+        );
+
+
+        const studentRows =
+          gradeStudents
+            .map(student => {
+
+              const audit =
+                auditByStudent.get(
+                  String(
+                    student.studentId
+                  )
+                );
+
+
+              const used =
+                !!audit;
+
+
+              const last =
+                used
+                  ? formatTimestamp(
+                      audit.lastLogin
+                    )
+                  : "";
+
+
+              return `
+                <div class="admin-audit-row">
+
+                  <div>
+
+                    <div class="admin-audit-name">
+                      ${adminEscape(student.studentName)}
+                    </div>
+
+                    <div class="admin-audit-meta">
+
+                      ${adminEscape(student.grade)}
+
+                      ·
+
+                      ${adminEscape(
+                        student.studentEmail || ""
+                      )}
+
+                      ${
+                        last
+                          ? ` · Last login: ${adminEscape(last)}`
+                          : ""
+                      }
+
+                    </div>
+
+                  </div>
+
+                  <div
+                    class="admin-audit-status ${
+                      used
+                        ? "used"
+                        : "never"
+                    }">
+
+                    ${
+                      used
+                        ? "USED"
+                        : "NEVER USED"
+                    }
+
+                  </div>
+
+                </div>
+              `;
+
+            })
+            .join("");
+
+
+        const usedCount =
+          gradeStudents.filter(
+            student =>
+              usedStudentIds.has(
+                String(
+                  student.studentId
+                )
+              )
+          ).length;
+
+
+const groupId =
+  "usage-grade-" +
+  grade.replace(/[^a-zA-Z0-9]/g, "-");
+
+return `
+
+  <div class="admin-usage-grade">
+
+    <button
+      class="admin-usage-grade-header"
+      type="button"
+      onclick='toggleAdminGradeGroup(${JSON.stringify(groupId)})'>
+
+      <span class="admin-usage-grade-left">
+
+        <span
+          id="${adminEscape(groupId)}-arrow"
+          class="admin-grade-arrow">
+          ▶
+        </span>
+
+        <span class="admin-usage-grade-name">
+          ${adminEscape(grade)}
+        </span>
+
+      </span>
+
+      <span class="admin-usage-grade-count">
+        ${gradeStudents.length} Students
+        ·
+        ${usedCount} Used
+      </span>
+
+    </button>
+
+    <div
+      id="${adminEscape(groupId)}"
+      class="admin-usage-grade-students"
+      
+      hidden>
+
+      ${studentRows}
+
+    </div>
+
+  </div>
+
+`;
+
+      })
+      .join("");
+
+
+    /*
+     * ==========================================================
+     * DISPLAY PAGE
+     * ==========================================================
+     */
+
+    content.innerHTML = `
+
+      <div class="admin-dashboard-grid">
+
+        <div class="admin-metric-card info">
+          <div class="admin-metric-label">
+            Students
+          </div>
+          <div class="admin-metric-value">
+            ${students.length}
+          </div>
+        </div>
+
+
+        <div class="admin-metric-card good">
+          <div class="admin-metric-label">
+            Used MTS சுவடி
+          </div>
+          <div class="admin-metric-value">
+            ${usedStudents.length}
+          </div>
+        </div>
+
+
+        <div class="admin-metric-card bad">
+          <div class="admin-metric-label">
+            Never Used
+          </div>
+          <div class="admin-metric-value">
+            ${neverStudents.length}
+          </div>
+        </div>
+
+
+        <div class="admin-metric-card">
+          <div class="admin-metric-label">
+            Families
+          </div>
+          <div class="admin-metric-value">
+            ${familyKeys.size}
+          </div>
+        </div>
+
+
+        <div class="admin-metric-card good">
+          <div class="admin-metric-label">
+            Families Used
+          </div>
+          <div class="admin-metric-value">
+            ${usedFamilyKeys.size}
+          </div>
+        </div>
+
+
+        <div class="admin-metric-card warn">
+          <div class="admin-metric-label">
+            Families Never Used
+          </div>
+          <div class="admin-metric-value">
+
+            ${
+              Math.max(
+                0,
+                familyKeys.size -
+                usedFamilyKeys.size
+              )
+            }
+
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="admin-section-title">
+        Student Usage
+      </div>
+
+
+      ${
+        groupedRows ||
+        '<div class="admin-empty">No students found.</div>'
+      }
+
+    `;
+
+  }
+  catch (e) {
+
+    console.error(e);
+
+    content.innerHTML =
+      `<div class="admin-error">
+         ${adminEscape(e.message)}
+       </div>`;
+
+  }
+
+}
+
+/* ============================================================
+ * ADMIN - SATURDAY LIBRARY ACTIVITY
+ * ============================================================ */
+function adminDateOnly(value) {
+  const d = parseLocalDate(value);
+  if (!d) return "";
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function adminSaturday(offsetWeeks=0) {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  const back = (d.getDay() - 6 + 7) % 7;
+  d.setDate(d.getDate() - back + (offsetWeeks * 7));
+  return adminDateOnly(d);
+}
+
+function changeAdminActivityWeek(delta) {
+  const p = new URLSearchParams(location.search);
+  const current = p.get("date") || adminSaturday(0);
+  const d = parseLocalDate(current) || new Date();
+  d.setDate(d.getDate() + (delta * 7));
+  spaNavigate("admin-activity", { date: adminDateOnly(d) }, true);
+}
+
+async function loadAdminActivity() {
+  const content = document.getElementById("admin-activity-content");
+  const schoolLabel = document.getElementById("admin-activity-school");
+  if (!content || !schoolLabel) return;
+
+  try {
+    const data = await requireAdminData();
+    if (!data) return;
+    schoolLabel.textContent = `${data.admin.school} Admin`;
+
+    const p = new URLSearchParams(location.search);
+    let selected = p.get("date") || adminSaturday(0);
+    let selectedDate = parseLocalDate(selected);
+    if (!selectedDate || selectedDate.getDay() !== 6) selected = adminSaturday(0);
+
+    const books = data.lending.map(normalizeLending);
+    const checkedOut = books.filter(b => adminDateOnly(b.checkedOutDate) === selected);
+    const expected = books.filter(b => adminDateOnly(b.dateToReturn) === selected);
+    const totalReturned = books.filter(b => adminDateOnly(b.dateReturned) === selected);
+    const expectedReturned = expected.filter(b => {
+      const returnedDate = adminDateOnly(b.dateReturned);
+      return returnedDate && returnedDate <= selected;
+    });
+    const expectedNotReturned = expected.filter(b => {
+      const returnedDate = adminDateOnly(b.dateReturned);
+      return !returnedDate || returnedDate > selected;
+    });
+
+    const d = parseLocalDate(selected);
+    const label = new Intl.DateTimeFormat("en-US", {weekday:"long", month:"short", day:"numeric", year:"numeric"}).format(d);
+
+/*
+ * ==========================================================
+ * GROUP EXPECTED-BUT-NOT-RETURNED BOOKS BY GRADE
+ * ==========================================================
+ */
+
+const activityGradeMap =
+  new Map();
+
+
+expectedNotReturned.forEach(book => {
+
+  const grade =
+    book.grade ||
+    "No Grade";
+
+  if (!activityGradeMap.has(grade)) {
+
+    activityGradeMap.set(
+      grade,
+      []
+    );
+
+  }
+
+  activityGradeMap
+    .get(grade)
+    .push(book);
+
+});
+
+
+const activityGrades =
+  [...activityGradeMap.keys()]
+    .sort(adminGradeSort);
+
+
+const missingRows =
+  activityGrades
+    .map(grade => {
+
+      const gradeBooks =
+        activityGradeMap.get(grade);
+
+
+      /*
+       * Sort by student, then book title.
+       */
+
+      gradeBooks.sort(
+        (a, b) => {
+
+          const studentCompare =
+            (a.studentName || "")
+              .localeCompare(
+                b.studentName || "",
+                undefined,
+                {
+                  sensitivity: "base"
+                }
+              );
+
+          if (studentCompare !== 0) {
+            return studentCompare;
+          }
+
+          return (
+            a.bookTitle || ""
+          ).localeCompare(
+            b.bookTitle || "",
+            undefined,
+            {
+              sensitivity: "base"
+            }
+          );
+
+        }
+      );
+
+
+      const groupId =
+        "activity-grade-" +
+        grade.replace(
+          /[^a-zA-Z0-9]/g,
+          "-"
+        );
+
+
+      const rows =
+        gradeBooks
+          .map(book => `
+
+            <div class="activity-list-row">
+
+              <div class="activity-book-title">
+                ${adminEscape(book.bookTitle)}
+              </div>
+
+              <div class="activity-book-meta">
+                ${adminEscape(book.studentName)}
+              </div>
+
+            </div>
+
+          `)
+          .join("");
+
+
+      return `
+
+        <div class="admin-usage-grade">
+
+          <button
+            class="admin-usage-grade-header"
+            type="button"
+            onclick='toggleAdminGradeGroup(${JSON.stringify(groupId)})'>
+
+            <span class="admin-usage-grade-left">
+
+              <span
+                id="${adminEscape(groupId)}-arrow"
+                class="admin-grade-arrow">
+                ▶
+              </span>
+
+              <span class="admin-usage-grade-name">
+                ${adminEscape(grade)}
+              </span>
+
+            </span>
+
+            <span class="admin-usage-grade-count">
+              ${gradeBooks.length} Books
+            </span>
+
+          </button>
+
+
+          <div
+            id="${adminEscape(groupId)}"
+            class="admin-usage-grade-students" 
+            hidden>
+
+            ${rows}
+
+          </div>
+
+        </div>
+
+      `;
+
+    })
+    .join("");
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const activityDate = parseLocalDate(selected);
+activityDate.setHours(0, 0, 0, 0);
+
+const expectedSectionTitle =
+  activityDate > today
+    ? "Expected Return Count"
+    : "Expected but Not Returned";
+    content.innerHTML = `
+      <div class="activity-datebar">
+        <button class="activity-date-button" type="button" onclick="changeAdminActivityWeek(-1)">‹</button>
+        <div class="activity-date-label">${adminEscape(label)}</div>
+        <button class="activity-date-button" type="button" onclick="changeAdminActivityWeek(1)">›</button>
+      </div>
+      <div class="admin-dashboard-grid">
+        <div class="admin-metric-card info"><div class="admin-metric-label">Books Checked Out</div><div class="admin-metric-value">${checkedOut.length}</div></div>
+        <div class="admin-metric-card warn"><div class="admin-metric-label">Expected to Return</div><div class="admin-metric-value">${expected.length}</div></div>
+        <div class="admin-metric-card good"><div class="admin-metric-label">Expected & Returned</div><div class="admin-metric-value">${expectedReturned.length}</div></div>
+        <div class="admin-metric-card bad"><div class="admin-metric-label">Expected but Not Returned</div><div class="admin-metric-value">${expectedNotReturned.length}</div></div>
+        <div class="admin-metric-card good"><div class="admin-metric-label">Total Returned</div><div class="admin-metric-value">${totalReturned.length}</div></div>
+      </div>
+      <div class="admin-section-title"> ${expectedSectionTitle} (${expectedNotReturned.length})</div>
+      ${missingRows || '<div class="admin-empty">All expected books were returned.</div>'}`;
+  } catch (e) {
+    console.error(e);
+    content.innerHTML = `<div class="admin-error">${adminEscape(e.message)}</div>`;
+  }
 }
