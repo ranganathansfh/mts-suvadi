@@ -1503,7 +1503,267 @@ async function setBookReadStatus(lendingId, isRead) {
 
   return { success: true };
 }
+/*
+ * ============================================================
+ * PUSH NOTIFICATIONS
+ * ============================================================
+ */
 
+const SUVADI_VAPID_PUBLIC_KEY =
+  "BEODChF6aEBjvriGzZq8HyHDG7ryIQJtX1-3CbQY4j9iC4KuH9Y8tCDux8g-K0MKukKMC2Kalnyv4cX_xssEK1c";
+
+
+async function enableSuvadiNotifications() {
+
+  const data =
+    await loadSuvadiData();
+
+  /*
+   * Notifications are currently for families only.
+   */
+  if (
+    !data ||
+    data.mode !== "family"
+  ) {
+    throw new Error(
+      "Notifications are available for family accounts only."
+    );
+  }
+
+
+  /*
+   * Check browser support.
+   */
+  if (
+    !("Notification" in window) ||
+    !("serviceWorker" in navigator) ||
+    !firebase.messaging
+  ) {
+    throw new Error(
+      "Push notifications are not supported on this device/browser."
+    );
+  }
+
+
+  /*
+   * Ask the user for notification permission.
+   */
+  const permission =
+    await Notification.requestPermission();
+
+  if (permission !== "granted") {
+
+    throw new Error(
+      "Notification permission was not granted."
+    );
+
+  }
+
+
+  /*
+   * Use our existing MTS Suvadi service worker.
+   */
+  const registration =
+    await navigator.serviceWorker.ready;
+
+
+  /*
+   * Get Firebase Cloud Messaging token.
+   */
+  const messaging =
+    firebase.messaging();
+
+
+  const token =
+    await messaging.getToken({
+      vapidKey:
+        SUVADI_VAPID_PUBLIC_KEY,
+
+      serviceWorkerRegistration:
+        registration
+    });
+
+
+  if (!token) {
+
+    throw new Error(
+      "Could not register this device for notifications."
+    );
+
+  }
+
+
+  /*
+   * Build family/student information.
+   */
+  const students =
+    (data.students || [])
+      .map(normalizeStudent);
+
+
+  const studentIds =
+    students
+      .map(student =>
+        String(student.studentId)
+      )
+      .filter(Boolean);
+
+
+  const studentNames =
+    students
+      .map(student =>
+        student.studentName
+      )
+      .filter(Boolean);
+
+
+  const school =
+    students[0]?.school || "";
+
+
+  /*
+   * Create a safe document ID from the FCM token.
+   *
+   * We don't use the token itself as the Firestore document ID.
+   */
+  const tokenBytes =
+    new TextEncoder()
+      .encode(token);
+
+
+  const hashBuffer =
+    await crypto.subtle.digest(
+      "SHA-256",
+      tokenBytes
+    );
+
+
+  const deviceId =
+    Array.from(
+      new Uint8Array(hashBuffer)
+    )
+      .map(byte =>
+        byte
+          .toString(16)
+          .padStart(2, "0")
+      )
+      .join("");
+
+
+  /*
+   * One Firestore document per device/browser.
+   *
+   * This allows the same family to have:
+   *   iPhone
+   *   Android
+   *   tablet
+   *   etc.
+   */
+  await suvadiDb
+    .collection("notificationDevices")
+    .doc(deviceId)
+    .set(
+      {
+
+        parentEmail:
+          normalizeEmail(
+            data.parentEmail
+          ),
+
+        loginEmail:
+          normalizeEmail(
+            data.loginEmail
+          ),
+
+        school,
+
+        studentIds,
+
+        studentNames,
+
+        token,
+
+        enabled:
+          true,
+
+        updatedAt:
+          firebase.firestore
+            .FieldValue
+            .serverTimestamp()
+
+      },
+      {
+        merge:
+          true
+      }
+    );
+
+
+  /*
+   * Remember locally that this browser has registered.
+   */
+  localStorage.setItem(
+    "suvadiNotificationsEnabled",
+    "1"
+  );
+
+
+  return {
+    success:
+      true,
+
+    token
+  };
+}
+
+async function handleEnableSuvadiNotifications() {
+
+  const button =
+    document.getElementById(
+      "suvadi-notification-button"
+    );
+
+  try {
+
+    if (button) {
+      button.disabled = true;
+    }
+
+    await enableSuvadiNotifications();
+
+    if (button) {
+      button.innerHTML = `
+        <span class="top-action-icon">🔔</span>
+        <span class="top-action-text">Enabled</span>
+      `;
+
+      button.disabled = true;
+    }
+
+    alert(
+      "MTS சுவடி notifications have been enabled on this device."
+    );
+
+  }
+  catch (error) {
+
+    console.error(
+      "Notification registration failed:",
+      error
+    );
+
+    if (button) {
+      button.disabled = false;
+    }
+
+    alert(
+      error.message ||
+      "Unable to enable notifications."
+    );
+
+  }
+
+}
 /*
  * ============================================================
  * SIGN IN
