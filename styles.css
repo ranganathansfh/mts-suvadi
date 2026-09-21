@@ -1902,3 +1902,35 @@ button, a { font: inherit; }
 .admin-usage-grade-header:active {
   background: #e2e8f0;
 }
+/* Activity hierarchy colors */
+
+/* Level 1 - Books Checked Out / Expected Return */
+.activity-section-header {
+  background: #dbeafe !important;
+}
+
+/* Level 2 - Grade */
+.activity-grade-header {
+  background: #eaf2f8 !important;
+}
+
+/* Level 3 - Student */
+.activity-student-header {
+  background: #f7f7f7 !important;
+}
+
+/* Keep hierarchy text dark and clear */
+.activity-section-header .admin-usage-grade-name {
+  color: #123b67;
+  font-weight: 700;
+}
+
+.activity-grade-header .admin-usage-grade-name {
+  color: #234f78;
+  font-weight: 700;
+}
+
+.activity-student-header .admin-usage-grade-name {
+  color: #333;
+  font-weight: 600;
+}

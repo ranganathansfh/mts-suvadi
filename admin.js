@@ -885,7 +885,34 @@ async function loadAdminUsage() {
       snap.docs.map(
         d => d.data() || {}
       );
+/*
+ * Get notification-enabled families.
+ */
+const notificationSnap =
+  await suvadiDb
+    .collection("notificationDevices")
+    .where("school", "==", data.admin.school)
+    .get();
 
+const notificationFamilies =
+  new Set();
+
+notificationSnap.docs.forEach(doc => {
+
+  const device = doc.data() || {};
+
+  if (device.enabled === true) {
+
+    const parentEmail =
+      normalizeEmail(device.parentEmail || "");
+
+    if (parentEmail) {
+      notificationFamilies.add(parentEmail);
+    }
+
+  }
+
+});
 
     /*
      * Determine which students/families have used MTS Suvadi.
@@ -1114,7 +1141,10 @@ async function loadAdminUsage() {
 
               const used =
                 !!audit;
-
+              const notificationsEnabled =
+                notificationFamilies.has(
+                  normalizeEmail(student.parentEmail || "")
+                );
 
               const last =
                 used
@@ -1160,11 +1190,28 @@ async function loadAdminUsage() {
                         : "never"
                     }">
 
-                    ${
-                      used
-                        ? "USED"
-                        : "NEVER USED"
-                    }
+${
+  used
+    ? "USED"
+    : "NEVER USED"
+}
+
+<span
+  title="${
+    notificationsEnabled
+      ? "Notifications enabled"
+      : "Notifications not enabled"
+  }"
+  style="
+    margin-left:8px;
+    font-size:18px;
+  ">
+  ${
+    notificationsEnabled
+      ? "🔔"
+      : "🔕"
+  }
+</span>
 
                   </div>
 
@@ -1344,184 +1391,352 @@ return `
   }
 
 }
-
 /* ============================================================
  * ADMIN - SATURDAY LIBRARY ACTIVITY
  * ============================================================ */
+
 function adminDateOnly(value) {
   const d = parseLocalDate(value);
   if (!d) return "";
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+  return (
+    `${d.getFullYear()}-` +
+    `${String(d.getMonth() + 1).padStart(2, "0")}-` +
+    `${String(d.getDate()).padStart(2, "0")}`
+  );
 }
 
-function adminSaturday(offsetWeeks=0) {
+
+function adminSaturday(offsetWeeks = 0) {
   const d = new Date();
-  d.setHours(0,0,0,0);
-  const back = (d.getDay() - 6 + 7) % 7;
-  d.setDate(d.getDate() - back + (offsetWeeks * 7));
+  d.setHours(0, 0, 0, 0);
+
+  const back =
+    (d.getDay() - 6 + 7) % 7;
+
+  d.setDate(
+    d.getDate() -
+    back +
+    (offsetWeeks * 7)
+  );
+
   return adminDateOnly(d);
 }
 
+
 function changeAdminActivityWeek(delta) {
-  const p = new URLSearchParams(location.search);
-  const current = p.get("date") || adminSaturday(0);
-  const d = parseLocalDate(current) || new Date();
-  d.setDate(d.getDate() + (delta * 7));
-  spaNavigate("admin-activity", { date: adminDateOnly(d) }, true);
+
+  const p =
+    new URLSearchParams(location.search);
+
+  const current =
+    p.get("date") ||
+    adminSaturday(0);
+
+  const d =
+    parseLocalDate(current) ||
+    new Date();
+
+  d.setDate(
+    d.getDate() +
+    (delta * 7)
+  );
+
+  spaNavigate(
+    "admin-activity",
+    {
+      date: adminDateOnly(d)
+    },
+    true
+  );
 }
 
-async function loadAdminActivity() {
-  const content = document.getElementById("admin-activity-content");
-  const schoolLabel = document.getElementById("admin-activity-school");
-  if (!content || !schoolLabel) return;
 
-  try {
-    const data = await requireAdminData();
-    if (!data) return;
-    schoolLabel.textContent = `${data.admin.school} Admin`;
+/* ============================================================
+ * ACTIVITY GROUPING
+ *
+ * Grade
+ *   -> Student
+ *       -> Books
+ * ============================================================ */
 
-    const p = new URLSearchParams(location.search);
-    let selected = p.get("date") || adminSaturday(0);
-    let selectedDate = parseLocalDate(selected);
-    if (!selectedDate || selectedDate.getDay() !== 6) selected = adminSaturday(0);
+function adminGroupedBookList(books, prefix) {
 
-    const books = data.lending.map(normalizeLending);
-    const checkedOut = books.filter(b => adminDateOnly(b.checkedOutDate) === selected);
-    const expected = books.filter(b => adminDateOnly(b.dateToReturn) === selected);
-    const totalReturned = books.filter(b => adminDateOnly(b.dateReturned) === selected);
-    const expectedReturned = expected.filter(b => {
-      const returnedDate = adminDateOnly(b.dateReturned);
-      return returnedDate && returnedDate <= selected;
-    });
-    const expectedNotReturned = expected.filter(b => {
-      const returnedDate = adminDateOnly(b.dateReturned);
-      return !returnedDate || returnedDate > selected;
-    });
-
-    const d = parseLocalDate(selected);
-    const label = new Intl.DateTimeFormat("en-US", {weekday:"long", month:"short", day:"numeric", year:"numeric"}).format(d);
-
-/*
- * ==========================================================
- * GROUP EXPECTED-BUT-NOT-RETURNED BOOKS BY GRADE
- * ==========================================================
- */
-
-const activityGradeMap =
-  new Map();
-
-
-expectedNotReturned.forEach(book => {
-
-  const grade =
-    book.grade ||
-    "No Grade";
-
-  if (!activityGradeMap.has(grade)) {
-
-    activityGradeMap.set(
-      grade,
-      []
-    );
-
+  if (!books || !books.length) {
+    return "";
   }
 
-  activityGradeMap
-    .get(grade)
-    .push(book);
 
-});
+  /*
+   * GROUP BY GRADE
+   */
 
-
-const activityGrades =
-  [...activityGradeMap.keys()]
-    .sort(adminGradeSort);
+  const gradeMap =
+    new Map();
 
 
-const missingRows =
-  activityGrades
-    .map(grade => {
+  books.forEach(book => {
+
+    const grade =
+      book.grade ||
+      "No Grade";
+
+    if (!gradeMap.has(grade)) {
+      gradeMap.set(grade, []);
+    }
+
+    gradeMap
+      .get(grade)
+      .push(book);
+
+  });
+
+
+  const grades =
+    [...gradeMap.keys()]
+      .sort(adminGradeSort);
+
+
+  /*
+   * BUILD GRADES
+   */
+
+  return grades
+    .map((grade, gradeIndex) => {
 
       const gradeBooks =
-        activityGradeMap.get(grade);
+        gradeMap.get(grade);
 
 
       /*
-       * Sort by student, then book title.
+       * GROUP BY STUDENT
        */
 
-      gradeBooks.sort(
-        (a, b) => {
+      const studentMap =
+        new Map();
 
-          const studentCompare =
-            (a.studentName || "")
-              .localeCompare(
-                b.studentName || "",
-                undefined,
-                {
-                  sensitivity: "base"
-                }
-              );
 
-          if (studentCompare !== 0) {
-            return studentCompare;
-          }
+      gradeBooks.forEach(book => {
 
-          return (
-            a.bookTitle || ""
-          ).localeCompare(
-            b.bookTitle || "",
-            undefined,
+        const key =
+          String(
+            book.studentId ||
+            book.studentName ||
+            "unknown"
+          );
+
+
+        if (!studentMap.has(key)) {
+
+          studentMap.set(
+            key,
             {
-              sensitivity: "base"
+              studentId:
+                String(
+                  book.studentId ||
+                  ""
+                ),
+
+              studentName:
+                book.studentName ||
+                "Unknown Student",
+
+              books: []
             }
           );
 
         }
-      );
 
 
-      const groupId =
-        "activity-grade-" +
+        studentMap
+          .get(key)
+          .books
+          .push(book);
+
+      });
+
+
+      /*
+       * SORT STUDENTS
+       */
+
+      const students =
+        [...studentMap.values()]
+          .sort(
+            (a, b) =>
+              a.studentName.localeCompare(
+                b.studentName,
+                undefined,
+                {
+                  sensitivity: "base"
+                }
+              )
+          );
+
+
+      const gradeId =
+        `${prefix}-grade-${gradeIndex}-` +
         grade.replace(
           /[^a-zA-Z0-9]/g,
           "-"
         );
 
 
-      const rows =
-        gradeBooks
-          .map(book => `
+      /*
+       * BUILD STUDENTS
+       */
 
-            <div class="activity-list-row">
+      const studentRows =
+        students
+          .map(
+            (
+              student,
+              studentIndex
+            ) => {
 
-              <div class="activity-book-title">
-                ${adminEscape(book.bookTitle)}
-              </div>
+              const studentGroupId =
+                `${gradeId}-student-${studentIndex}`;
 
-              <div class="activity-book-meta">
-                ${adminEscape(book.studentName)}
-              </div>
 
-            </div>
+              const studentBooks =
+                [...student.books]
+                  .sort(
+                    (a, b) =>
+                      (
+                        a.bookTitle ||
+                        ""
+                      ).localeCompare(
+                        b.bookTitle ||
+                        "",
+                        undefined,
+                        {
+                          sensitivity:
+                            "base"
+                        }
+                      )
+                  );
 
-          `)
+
+              /*
+               * BOOK ROWS
+               */
+
+              const bookRows =
+                studentBooks
+                  .map(book => `
+
+                    <div class="activity-list-row">
+
+<div class="activity-book-title">
+
+  ${adminEscape(
+    book.bookTitle ||
+    "Untitled Book"
+  )}
+
+  ${
+    book.dateToReturn
+      ? `<span style="
+           color:#8B5A2B;
+           font-size:13px;
+           font-weight:600;
+           margin-left:6px;
+         ">
+           Due: ${adminEscape(
+             adminDateOnly(book.dateToReturn)
+           )}
+         </span>`
+      : ""
+  }
+
+</div>
+
+                    </div>
+
+                  `)
+                  .join("");
+
+
+              /*
+               * STUDENT HEADER
+               */
+
+              return `
+
+                <div class="admin-activity-student-group">
+
+                  <button
+                    class="admin-usage-grade-header admin-activity-student-header activity-student-header"
+                    type="button"
+                    onclick='toggleAdminGradeGroup(${JSON.stringify(studentGroupId)})'>
+
+                    <span class="admin-usage-grade-left">
+
+                      <span
+                        id="${adminEscape(studentGroupId)}-arrow"
+                        class="admin-grade-arrow">
+                        ▶
+                      </span>
+
+                      <span class="admin-usage-grade-name">
+
+                       ${adminEscape(student.studentName)}
+
+                      </span>
+
+                    </span>
+
+
+                    <span class="admin-usage-grade-count">
+
+                      ${studentBooks.length}
+
+                      ${
+                        studentBooks.length === 1
+                          ? "Book"
+                          : "Books"
+                      }
+
+                    </span>
+
+                  </button>
+
+
+                  <div
+                    id="${adminEscape(studentGroupId)}"
+                    class="admin-usage-grade-students"
+                    hidden>
+
+                    ${bookRows}
+
+                  </div>
+
+                </div>
+
+              `;
+
+            }
+          )
           .join("");
 
 
+      /*
+       * GRADE HEADER
+       */
+     
       return `
 
         <div class="admin-usage-grade">
 
           <button
-            class="admin-usage-grade-header"
+            class="admin-usage-grade-header activity-grade-header"
             type="button"
-            onclick='toggleAdminGradeGroup(${JSON.stringify(groupId)})'>
+            onclick='toggleAdminGradeGroup(${JSON.stringify(gradeId)})'>
 
             <span class="admin-usage-grade-left">
 
               <span
-                id="${adminEscape(groupId)}-arrow"
+                id="${adminEscape(gradeId)}-arrow"
                 class="admin-grade-arrow">
                 ▶
               </span>
@@ -1532,19 +1747,28 @@ const missingRows =
 
             </span>
 
+
             <span class="admin-usage-grade-count">
-              ${gradeBooks.length} Books
+
+              ${gradeBooks.length}
+
+              ${
+                gradeBooks.length === 1
+                  ? "Book"
+                  : "Books"
+              }
+
             </span>
 
           </button>
 
 
           <div
-            id="${adminEscape(groupId)}"
-            class="admin-usage-grade-students" 
+            id="${adminEscape(gradeId)}"
+            class="admin-usage-grade-students"
             hidden>
 
-            ${rows}
+            ${studentRows}
 
           </div>
 
@@ -1554,33 +1778,431 @@ const missingRows =
 
     })
     .join("");
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+}
 
-const activityDate = parseLocalDate(selected);
-activityDate.setHours(0, 0, 0, 0);
 
-const expectedSectionTitle =
-  activityDate > today
-    ? "Expected Return Count"
-    : "Expected but Not Returned";
+/* ============================================================
+ * LOAD ACTIVITY
+ * ============================================================ */
+
+async function loadAdminActivity() {
+
+  const content =
+    document.getElementById(
+      "admin-activity-content"
+    );
+
+  const schoolLabel =
+    document.getElementById(
+      "admin-activity-school"
+    );
+
+
+  if (!content || !schoolLabel) {
+    return;
+  }
+
+
+  try {
+
+    const data =
+      await requireAdminData();
+
+    if (!data) return;
+
+
+    schoolLabel.textContent =
+      `${data.admin.school} Admin`;
+
+
+    /*
+     * SELECT DATE
+     */
+
+    const p =
+      new URLSearchParams(
+        location.search
+      );
+
+    let selected =
+      p.get("date") ||
+      adminSaturday(0);
+
+
+    let selectedDate =
+      parseLocalDate(selected);
+
+
+    if (
+      !selectedDate ||
+      selectedDate.getDay() !== 6
+    ) {
+
+      selected =
+        adminSaturday(0);
+
+      selectedDate =
+        parseLocalDate(selected);
+    }
+
+
+    /*
+     * GET ACTIVITY
+     */
+
+    const books =
+      data.lending.map(
+        normalizeLending
+      );
+
+
+    const checkedOut =
+      books.filter(
+        book =>
+          adminDateOnly(
+            book.checkedOutDate
+          ) === selected
+      );
+
+
+    const expected =
+      books.filter(
+        book =>
+          adminDateOnly(
+            book.dateToReturn
+          ) === selected
+      );
+
+
+    const totalReturned =
+      books.filter(
+        book =>
+          adminDateOnly(
+            book.dateReturned
+          ) === selected
+      );
+
+
+    const expectedReturned =
+      expected.filter(book => {
+
+        const returnedDate =
+          adminDateOnly(
+            book.dateReturned
+          );
+
+        return (
+          returnedDate &&
+          returnedDate <= selected
+        );
+
+      });
+
+
+    const expectedNotReturned =
+      expected.filter(book => {
+
+        const returnedDate =
+          adminDateOnly(
+            book.dateReturned
+          );
+
+        return (
+          !returnedDate ||
+          returnedDate > selected
+        );
+
+      });
+
+
+    /*
+     * DATE LABEL
+     */
+
+    const d =
+      parseLocalDate(selected);
+
+
+    const label =
+      new Intl.DateTimeFormat(
+        "en-US",
+        {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        }
+      ).format(d);
+
+
+    /*
+     * FUTURE OR PAST
+     */
+
+    const today =
+      new Date();
+
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+
+    const activityDate =
+      parseLocalDate(selected);
+
+    activityDate.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+
+    const isFuture =
+      activityDate > today;
+
+
+    const expectedDisplayBooks =
+      isFuture
+        ? expected
+        : expectedNotReturned;
+
+
+    const expectedSectionTitle =
+      isFuture
+        ? "Expected Return Count"
+        : "Expected but Not Returned";
+
+
+    /*
+     * BUILD GROUPED BOOK LISTS
+     */
+
+    const checkedOutRows =
+      adminGroupedBookList(
+        checkedOut,
+        "activity-checkout"
+      );
+
+
+    const expectedRows =
+      adminGroupedBookList(
+        expectedDisplayBooks,
+        "activity-expected"
+      );
+
+
+    /*
+     * CHECKED OUT SECTION
+     *
+     * Only appears when count > 0
+     */
+
+const checkedOutSection =
+  checkedOut.length > 0
+    ? `
+
+      <button
+        class="admin-usage-grade-header activity-section-header"
+        type="button"
+        onclick='toggleAdminGradeGroup("activity-checkedout-section")'>
+
+        <span class="admin-usage-grade-left">
+
+          <span
+            id="activity-checkedout-section-arrow"
+            class="admin-grade-arrow">
+            ▶
+          </span>
+
+          <span class="admin-usage-grade-name">
+            Books Checked Out (${checkedOut.length})
+          </span>
+
+        </span>
+
+      </button>
+
+
+      <div
+        id="activity-checkedout-section"
+        hidden>
+
+        ${checkedOutRows}
+
+      </div>
+
+    `
+    : "";
+
+
+    /*
+     * EXPECTED EMPTY MESSAGE
+     */
+
+    const expectedEmptyMessage =
+      isFuture
+        ? "No books are expected to be returned."
+        : "All expected books were returned.";
+
+
+    /*
+     * DISPLAY
+     */
+
     content.innerHTML = `
+
       <div class="activity-datebar">
-        <button class="activity-date-button" type="button" onclick="changeAdminActivityWeek(-1)">‹</button>
-        <div class="activity-date-label">${adminEscape(label)}</div>
-        <button class="activity-date-button" type="button" onclick="changeAdminActivityWeek(1)">›</button>
+
+        <button
+          class="activity-date-button"
+          type="button"
+          onclick="changeAdminActivityWeek(-1)">
+          ‹
+        </button>
+
+        <div class="activity-date-label">
+          ${adminEscape(label)}
+        </div>
+
+        <button
+          class="activity-date-button"
+          type="button"
+          onclick="changeAdminActivityWeek(1)">
+          ›
+        </button>
+
       </div>
+
+
       <div class="admin-dashboard-grid">
-        <div class="admin-metric-card info"><div class="admin-metric-label">Books Checked Out</div><div class="admin-metric-value">${checkedOut.length}</div></div>
-        <div class="admin-metric-card warn"><div class="admin-metric-label">Expected to Return</div><div class="admin-metric-value">${expected.length}</div></div>
-        <div class="admin-metric-card good"><div class="admin-metric-label">Expected & Returned</div><div class="admin-metric-value">${expectedReturned.length}</div></div>
-        <div class="admin-metric-card bad"><div class="admin-metric-label">Expected but Not Returned</div><div class="admin-metric-value">${expectedNotReturned.length}</div></div>
-        <div class="admin-metric-card good"><div class="admin-metric-label">Total Returned</div><div class="admin-metric-value">${totalReturned.length}</div></div>
+
+
+        <div class="admin-metric-card info">
+
+          <div class="admin-metric-label">
+            Books Checked Out
+          </div>
+
+          <div class="admin-metric-value">
+            ${checkedOut.length}
+          </div>
+
+        </div>
+
+
+        <div class="admin-metric-card warn">
+
+          <div class="admin-metric-label">
+            Expected to Return
+          </div>
+
+          <div class="admin-metric-value">
+            ${expected.length}
+          </div>
+
+        </div>
+
+
+        <div class="admin-metric-card good">
+
+          <div class="admin-metric-label">
+            Expected & Returned
+          </div>
+
+          <div class="admin-metric-value">
+            ${expectedReturned.length}
+          </div>
+
+        </div>
+
+
+        <div class="admin-metric-card bad">
+
+          <div class="admin-metric-label">
+            Expected but Not Returned
+          </div>
+
+          <div class="admin-metric-value">
+            ${expectedNotReturned.length}
+          </div>
+
+        </div>
+
+
+        <div class="admin-metric-card good">
+
+          <div class="admin-metric-label">
+            Total Returned
+          </div>
+
+          <div class="admin-metric-value">
+            ${totalReturned.length}
+          </div>
+
+        </div>
+
+
       </div>
-      <div class="admin-section-title"> ${expectedSectionTitle} (${expectedNotReturned.length})</div>
-      ${missingRows || '<div class="admin-empty">All expected books were returned.</div>'}`;
-  } catch (e) {
-    console.error(e);
-    content.innerHTML = `<div class="admin-error">${adminEscape(e.message)}</div>`;
+
+
+${checkedOutSection}
+
+
+<button
+  class="admin-usage-grade-header activity-section-header"
+  type="button"
+  onclick='toggleAdminGradeGroup("activity-expected-section")'>
+
+  <span class="admin-usage-grade-left">
+
+    <span
+      id="activity-expected-section-arrow"
+      class="admin-grade-arrow">
+      ▶
+    </span>
+
+    <span class="admin-usage-grade-name">
+
+      ${expectedSectionTitle}
+      (${expectedDisplayBooks.length})
+
+    </span>
+
+  </span>
+
+</button>
+
+
+<div
+  id="activity-expected-section"
+  hidden>
+
+  ${
+    expectedRows ||
+    `<div class="admin-empty">
+       ${expectedEmptyMessage}
+     </div>`
+  }
+
+</div>
+
+    `;
+
+  }
+
+  catch (error) {
+
+    console.error(error);
+
+    content.innerHTML = `
+      <div class="admin-error">
+        ${adminEscape(error.message)}
+      </div>
+    `;
+
   }
 }

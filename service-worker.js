@@ -1,4 +1,4 @@
-const CACHE_NAME = "mts-suvadi-spa-v14";
+const CACHE_NAME = "mts-suvadi-spa-v15";
 
 const APP_SHELL = [
   "./",
