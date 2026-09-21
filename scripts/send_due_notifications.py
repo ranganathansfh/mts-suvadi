@@ -41,8 +41,11 @@ db = firestore.client()
 # TODAY - MICHIGAN LOCAL DATE
 # ============================================================
 
-# TEMPORARY TEST DATE
-today_string = "2026-10-10"
+today = datetime.now(
+    ZoneInfo(TIME_ZONE)
+).date()
+
+today_string = today.strftime("%Y-%m-%d")
 
 print(f"MTS Suvadi notification date: {today_string}")
 
