@@ -3,6 +3,8 @@ name: MTS Suvadi Due Book Notifications
 on:
   # Manual testing for now
   workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * *"
 
 jobs:
 
